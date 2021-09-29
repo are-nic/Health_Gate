@@ -7,6 +7,10 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
+class Product(models.Model):
+    name = models.CharField(max_length=255)
+
+
 class Category(models.Model):
     """
     категории рецептов
@@ -124,6 +128,7 @@ class Recipe(models.Model):
     portions = models.PositiveIntegerField(verbose_name='Кол-во порций', default=1)
     date_created = models.DateTimeField(auto_now_add=True, null=True, verbose_name='создан')
     tags = models.ManyToManyField(Tag, blank=True, default='рецепт', verbose_name='Тэги')
+    is_active = models.BooleanField(default=False, verbose_name='Прошел модерацию')
 
     class Meta:
         verbose_name = 'Рецепт'
