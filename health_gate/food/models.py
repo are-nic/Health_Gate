@@ -41,10 +41,44 @@ class Kitchen(models.Model):
         return self.name
 
 
+class Filter(models.Model):
+    """
+    Модель основных фильтров предпочтений (тегов) (в соответствии с дизайном: Стиль жизни, Состояние здоровья, Диета)
+    """
+    title = models.CharField(max_length=100, verbose_name='Заголовок фильтра')
+
+    class Meta:
+        ordering = ('title',)
+        verbose_name = 'Фильтр'
+        verbose_name_plural = 'Фильтры'
+        db_table = 'filter'
+
+    def __str__(self):
+        return self.title
+
+
+class Subtype(models.Model):
+    """
+    Модель подтипов предпочтений (тегов) (в соответствии с дизайном: Короновирус, Старение, Здоровье мозга и т.д.)
+    """
+    filter = models.ForeignKey(Filter, verbose_name='Основные фильтры предпочтений', on_delete=models.CASCADE)
+    title = models.CharField(max_length=100, verbose_name='Заголовок подтипа')
+
+    class Meta:
+        ordering = ('title',)
+        verbose_name = 'Подтип'
+        verbose_name_plural = 'Подтипы'
+        db_table = 'subtype'
+
+    def __str__(self):
+        return self.title
+
+
 class Tag(models.Model):
     """
     Тэги
     """
+    subtype = models.ForeignKey(Subtype, verbose_name='Подтип предпочтений/тегов', on_delete=models.CASCADE)
     name = models.CharField(max_length=100, verbose_name='Тэг')
 
     class Meta:
@@ -78,9 +112,6 @@ class Recipe(models.Model):
     slug = models.SlugField(unique=True)
     level = models.CharField(max_length=20, choices=LEVEL, verbose_name='Уровень сложности блюда')
     no_preservatives = models.BooleanField(default=False, verbose_name='Без консервантов')
-    live_style = models.CharField(max_length=30, choices=LIVE_STYLE, verbose_name='Стиль жизни')
-    health_status = models.CharField(max_length=30, choices=HEALTH_STATUS, verbose_name='Состояние здоровья')
-    diet = models.CharField(max_length=30, choices=DIET, verbose_name='Тип диеты')
     cooking_time = models.CharField(max_length=50, verbose_name='Время приготовления')
     protein = models.IntegerField(verbose_name='Белки', null=True)
     fat = models.IntegerField(verbose_name='Жиры', null=True)
@@ -161,4 +192,4 @@ class CookStep(models.Model):
     recipe = models.ForeignKey(Recipe, verbose_name='Рецепт', on_delete=models.CASCADE, related_name='steps')
     title = models.CharField(max_length=200, verbose_name='Заголовок шага')
     description = models.TextField(verbose_name='Описание шага')
-    image = models.ImageField(verbose_name='Фото шага', blank=True, null=True, upload_to='steps') # прописать грамотно путь
+    image = models.ImageField(verbose_name='Фото шага', blank=True, null=True, upload_to='steps')   # указать путь
