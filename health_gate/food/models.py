@@ -1,10 +1,12 @@
 from decimal import Decimal
+
+from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
 from slugify import slugify
-from django.contrib.auth import get_user_model
 
-User = get_user_model()
+
+User = settings.AUTH_USER_MODEL
 
 
 class Product(models.Model):
@@ -105,10 +107,6 @@ class Recipe(models.Model):
         ('EASY', 'легко'),
     ]
 
-    LIVE_STYLE = []
-    HEALTH_STATUS = []
-    DIET = []
-
     owner = models.ForeignKey(User, verbose_name='Автор рецепта', on_delete=models.CASCADE)
     category = models.ForeignKey(Category, verbose_name='Категория', on_delete=models.SET_NULL, null=True, blank=True)
     kitchen = models.ForeignKey(Kitchen, verbose_name='Тип кухни', on_delete=models.SET_NULL, null=True, blank=True)
@@ -127,7 +125,7 @@ class Recipe(models.Model):
                                 default=0.00, validators=[MinValueValidator(Decimal('0.00'))])
     portions = models.PositiveIntegerField(verbose_name='Кол-во порций', default=1)
     date_created = models.DateTimeField(auto_now_add=True, null=True, verbose_name='создан')
-    tags = models.ManyToManyField(Tag, blank=True, default='рецепт', verbose_name='Тэги')
+    tags = models.ManyToManyField(Tag, blank=True, verbose_name='Тэги')
     is_active = models.BooleanField(default=False, verbose_name='Прошел модерацию')
 
     class Meta:
@@ -142,7 +140,7 @@ class Recipe(models.Model):
         """
         для автоматического заполнения поля slug при создании рецепта
         """
-        self.slug = slugify(str(self.title))
+        self.slug = slugify(self.title)
         return super(Recipe, self).save(*args, **kwargs)
 
     @property
@@ -186,7 +184,7 @@ class Ingredient(models.Model):
         db_table = 'Ingredient'
 
     def __str__(self):
-        return self.name.name
+        return self.name
 
 
 class CookStep(models.Model):
@@ -198,3 +196,12 @@ class CookStep(models.Model):
     title = models.CharField(max_length=200, verbose_name='Заголовок шага')
     description = models.TextField(verbose_name='Описание шага')
     image = models.ImageField(verbose_name='Фото шага', blank=True, null=True, upload_to='steps')   # указать путь
+
+    class Meta:
+        ordering = ('title',)
+        verbose_name = 'Шаг приготовления'
+        verbose_name_plural = 'Шаги приготовления'
+        db_table = 'cook_steps'
+
+    def __str__(self):
+        return self.title

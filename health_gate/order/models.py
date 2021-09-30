@@ -1,9 +1,10 @@
+from django.conf import settings
 from django.db import models
 from food.models import Recipe, Product
-from django.contrib.auth import get_user_model
+# from django.contrib.auth import get_user_model
 
 
-User = get_user_model()
+User = settings.AUTH_USER_MODEL
 
 
 class Order(models.Model):
