@@ -96,7 +96,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
-    'core.backends.PhoneModelBackend'                   # путь к классу кастомного бэкенда регистрации юзера
+    'user.backends.PhoneModelBackend'                   # путь к классу кастомного бэкенда регистрации юзера
 ]
 
 AUTH_USER_MODEL = 'user.CustomUser'                     # путь к кастомной модели юзера
