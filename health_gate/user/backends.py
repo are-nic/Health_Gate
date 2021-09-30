@@ -1,7 +1,7 @@
-from django.contrib.auth import get_user_model
+from django.conf import settings
 
 
-User = get_user_model()
+User = settings.AUTH_USER_MODEL
 
 
 class PhoneModelBackend:
@@ -9,9 +9,6 @@ class PhoneModelBackend:
     def authenticate(self, phone_number=None, password=None):
         """
         Аутентификация по номеру телефона
-        :param phone_number:
-        :param password:
-        :return:
         """
         try:
             user = User.objects.get(phone_number=phone_number)
