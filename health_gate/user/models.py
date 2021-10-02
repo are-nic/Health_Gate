@@ -16,12 +16,12 @@ class CustomUser(AbstractUser):
     about = models.TextField(max_length=300, verbose_name='О Себе', blank=True)
     photo = models.ImageField(verbose_name='Фото профиля', blank=True, null=True, upload_to='profile_photo')
     tags = models.ManyToManyField(Tag, blank=True, verbose_name='Тэги')
-    twitter = models.URLField(verbose_name='Twitter', blank=True,)
-    facebook = models.URLField(verbose_name='Facebook', blank=True,)
-    instagram = models.URLField(verbose_name='Instagram', blank=True,)
-    youtube = models.URLField(verbose_name='Youtube', blank=True,)
-    tik_tok = models.URLField(verbose_name='Tik-Tok', blank=True,)
-    patreon = models.URLField(verbose_name='Patreon', blank=True,)
+    twitter = models.URLField(verbose_name='Twitter', blank=True)
+    facebook = models.URLField(verbose_name='Facebook', blank=True)
+    instagram = models.URLField(verbose_name='Instagram', blank=True)
+    youtube = models.URLField(verbose_name='Youtube', blank=True)
+    tik_tok = models.URLField(verbose_name='Tik-Tok', blank=True)
+    patreon = models.URLField(verbose_name='Patreon', blank=True)
 
     # is_active = models.BooleanField(default=False, verbose_name='Прошел модерацию')
 
@@ -30,3 +30,6 @@ class CustomUser(AbstractUser):
 
     # Сообщает Django, что класс CustomUserManager должен управлять объектами этого типа.
     objects = CustomUserManager()
+
+    def __str__(self):
+        return self.phone_number
