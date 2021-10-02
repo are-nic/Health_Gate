@@ -205,3 +205,22 @@ class CookStep(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Comment(models.Model):
+    """
+    Комментарий к рецепту
+    """
+    author = models.ForeignKey(User, verbose_name='Автор комментария', on_delete=models.CASCADE)
+    recipe = models.ForeignKey(Recipe, verbose_name='Рецепт', on_delete=models.CASCADE, related_name='comments')
+    text = models.TextField(verbose_name='Текст комментария')
+    created = models.DateTimeField(auto_now_add=True, verbose_name='Создан')
+
+    class Meta:
+        ordering = ('recipe',)
+        verbose_name = 'Комментарий к рецепту'
+        verbose_name_plural = 'Комментарии к рецепту'
+        db_table = 'comments_recipe'
+
+    def __str__(self):
+        return self.recipe.title
