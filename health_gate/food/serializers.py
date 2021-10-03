@@ -2,26 +2,16 @@ from rest_framework import serializers
 from .models import Recipe, Ingredient, Comment
 
 
-class RecipeListSerializer(serializers.ModelSerializer):
-    """Список рецептов"""
-    category = serializers.SlugRelatedField(slug_field='name', read_only=True)
-    owner = serializers.CharField(source="owner.phone_number", read_only=True)
-
-    class Meta:
-        model = Recipe
-        fields = ('id', 'owner', 'category', 'title')
-
-
-class IngredientCreateSerializer(serializers.ModelSerializer):
+class IngredientSerializer(serializers.ModelSerializer):
     """
     Добавление ингредиента
     """
     class Meta:
         model = Ingredient
-        exclude = ['id', 'id_product']
+        fields = '__all__'
 
 
-class CommentCreateSerializer(serializers.ModelSerializer):
+class CommentSerializer(serializers.ModelSerializer):
     """
     Добавление комментария к рецепту
     """
@@ -29,7 +19,17 @@ class CommentCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        exclude = ['id']
+        fields = '__all__'
+
+
+class RecipeListSerializer(serializers.ModelSerializer):
+    """Список рецептов"""
+    # category = serializers.SlugRelatedField(slug_field='name', read_only=True)
+    # owner = serializers.CharField(source="owner.phone_number", read_only=True)
+
+    class Meta:
+        model = Recipe
+        fields = '__all__'
 
 
 class RecipeDetailSerializer(serializers.ModelSerializer):
@@ -37,9 +37,9 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
     owner = serializers.CharField(source="owner.phone_number", read_only=True)
     category = serializers.SlugRelatedField(slug_field='name', read_only=True)
     kitchen = serializers.SlugRelatedField(slug_field='name', read_only=True)
-    ingredients = IngredientCreateSerializer(many=True)
+    ingredients = IngredientSerializer(many=True)
     tags = serializers.SlugRelatedField(slug_field='name', read_only=True, many=True)
-    comments = CommentCreateSerializer(many=True)
+    comments = CommentSerializer(many=True)
 
     class Meta:
         model = Recipe
