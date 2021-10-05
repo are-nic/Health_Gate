@@ -10,7 +10,43 @@ User = settings.AUTH_USER_MODEL
 
 
 class Product(models.Model):
-    name = models.CharField(max_length=255)
+    """Продукт"""
+
+    CATEGORIES = [
+        ('MILK', 'Молочка'),
+        ('MEAT', 'Мясо'),
+        ('BREAD', 'Хлебные изделия'),
+        ('FRUIT', 'Фрукты'),
+        ('VEGETABLES', 'Овощи')
+    ]
+
+    UNITS = [
+        ('LITER', 'л.'),
+        ('MILLI', 'мл.'),
+        ('GRAM', 'г.'),
+        ('KILO', 'кг.'),
+        ('PIECES', 'шт.')
+    ]
+
+    category = models.CharField(max_length=10, choices=CATEGORIES, verbose_name='Категория', null=True, blank=True)
+    name = models.CharField(max_length=300, verbose_name='Наименование')
+    qty_per_item = models.PositiveIntegerField(verbose_name='Кол-во на ед. продукта', null=True, blank=True)
+    unit = models.CharField(max_length=10, choices=UNITS, verbose_name='Ед. измерения', null=True, blank=True)
+    # image = models.ImageField(upload_to='products/%Y/%m/%d', blank=True, verbose_name='Фото')
+    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Цена', default=0.00)
+    stock = models.PositiveIntegerField(verbose_name='Остаток ед. продукта', default=1)
+    available = models.BooleanField(default=True, verbose_name='В наличии')
+    added = models.DateTimeField(auto_now_add=True, verbose_name='Добавлен')
+    updated = models.DateTimeField(auto_now=True, verbose_name='Обновлен')
+
+    class Meta:
+        ordering = ('name',)
+        verbose_name = 'Продукт'
+        verbose_name_plural = 'Продукты'
+        db_table = 'product'
+
+    def __str__(self):
+        return self.name
 
 
 class Category(models.Model):
@@ -162,7 +198,7 @@ class Ingredient(models.Model):
     UNITS = [
         ('LITER', 'л.'),
         ('MILLI', 'мл.'),
-        ('GRAMM', 'г.'),
+        ('GRAM', 'г.'),
         ('KILO', 'кг.'),
         ('PIECES', 'шт.'),
         ('TASTE', 'по вкусу'),
