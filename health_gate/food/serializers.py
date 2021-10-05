@@ -1,10 +1,10 @@
 from rest_framework import serializers
-from .models import Recipe, Ingredient, Comment, Product
+from .models import Recipe, Ingredient, Comment, Product, CookStep
 
 
 class IngredientSerializer(serializers.ModelSerializer):
     """
-    Добавление ингредиента
+    Ингредиент
     """
     class Meta:
         model = Ingredient
@@ -13,12 +13,21 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     """
-    Добавление комментария к рецепту
+    Комментария к рецепту
     """
     author = serializers.CharField(source="author.phone_number", read_only=True)
 
     class Meta:
         model = Comment
+        fields = '__all__'
+
+
+class CookStepSerializer(serializers.ModelSerializer):
+    """
+    Шаги приготовления к рецепту
+    """
+    class Meta:
+        model = CookStep
         fields = '__all__'
 
 
@@ -38,6 +47,7 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(slug_field='name', read_only=True)
     kitchen = serializers.SlugRelatedField(slug_field='name', read_only=True)
     ingredients = IngredientSerializer(many=True)
+    steps = CookStepSerializer(many=True)
     tags = serializers.SlugRelatedField(slug_field='name', read_only=True, many=True)
     comments = CommentSerializer(many=True)
 
