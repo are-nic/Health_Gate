@@ -12,7 +12,7 @@ from .views import (RecipeListView,
                     OrderProductView,
                     ProductView)
 
-router = SimpleRouter()
+router = SimpleRouter(trailing_slash=False)
 router.register('users', UserView)
 router.register('comments', CommentView)
 router.register('ingredients', IngredientView)
