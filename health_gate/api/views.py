@@ -2,17 +2,18 @@ from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from food.models import Recipe, Comment, Ingredient, Product
+from food.models import Recipe, Comment, Ingredient, Product, CookStep
 from order.models import Order, OrderRecipe, OrderProduct
 from rest_framework import viewsets, generics, permissions
-from .permissions import CustomerOrderOrReadOnly
+from .permissions import CustomerOrderOrReadOnly, AuthorComment, RecipeOwner
 from user.serializers import UserSerializer
 from order.serializers import OrderListSerializer, OrderDetailSerializer, OrderRecipeSerializer, OrderProductSerializer
 from food.serializers import (RecipeListSerializer,
                               RecipeDetailSerializer,
                               IngredientSerializer,
                               CommentSerializer,
-                              ProductSerializer)
+                              ProductSerializer,
+                              CookStepSerializer)
 
 User = get_user_model()
 
@@ -27,6 +28,7 @@ class RecipeListView(generics.ListCreateAPIView):
     # queryset = Recipe.objects.filter(is_active=True)        # получаем все рецепты из БД, которые прошли модерацию
     queryset = Recipe.objects.all()
     serializer_class = RecipeListSerializer
+    permission_classes = [IsAuthenticated]
 
 
 class RecipeDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -36,6 +38,7 @@ class RecipeDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
     queryset = Recipe.objects.all()
     serializer_class = RecipeDetailSerializer
+    permission_classes = [RecipeOwner]
 
 
 class IngredientView(viewsets.ModelViewSet):
@@ -48,15 +51,33 @@ class IngredientView(viewsets.ModelViewSet):
     serializer_class = IngredientSerializer
 
 
+class CookStepView(viewsets.ModelViewSet):
+    """
+    Конечная точка API, позволяющая просматривать, создавать или редактировать шаги приготовления рецептов.
+    get, post, put, patch, delete
+    сортировка по рецептам
+    """
+    queryset = CookStep.objects.order_by('recipe')
+    serializer_class = CookStepSerializer
+
+
 class CommentView(viewsets.ModelViewSet):
     """
     Конечная точка API, позволяющая просматривать, создавать или редактировать комментарии к рецептам.
     get, post, put, patch, delete
     сортировка по рецептам
-    доступ: вывод комментариев доступен всем авторизованным. Действия над комментами - для админа или создателя
+    доступ: чтение и создание комментариев доступен всем авторизованным.
+            Действия над комментами - для суперапользователя или автора коммента
     """
     queryset = Comment.objects.order_by('recipe')
     serializer_class = CommentSerializer
+
+    def get_permissions(self):
+        if self.action == 'list' or self.action == 'retrieve' or self.action == 'create':
+            permission_classes = [IsAuthenticated]
+        else:
+            permission_classes = [AuthorComment]
+        return [permission() for permission in permission_classes]
 
 
 class ProductView(viewsets.ModelViewSet):
@@ -70,11 +91,26 @@ class UserView(viewsets.ModelViewSet):
     """
     Конечная точка API, позволяющая просматривать, создавать или редактировать пользователей.
     get, post, put, patch, delete
+    Неаутентифицированные пользователи могут отправить GET-запрос для получения списка пользователей,
+    но он будет пустым, потому что возвращаемый User.objects.filter (id = self.request.user.id) гарантирует,
+    что будет возвращена только информация об аутентифицированном пользователе.
+
+    То же самое относится и к другим методам: если аутентифицированный пользователь пытается УДАЛИТЬ
+    другой пользовательский объект, будет возвращено: "Не найдено" (поскольку пользователь, к которому он пытается
+    получить доступ, отсутствует в наборе запросов).
+
+    Прошедшие проверку пользователи могут делать со своими пользовательскими объектами все, что захотят.
     """
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
-    def get_permissions(self):
+    def get_queryset(self):
+        if self.request.user.is_superuser:
+            return User.objects.all()
+        else:
+            return User.objects.filter(id=self.request.user.id)
+
+    '''def get_permissions(self):
         """
         Возвращает список разрешений для доступа к списку пользователей и дейсвтиям над ними
         Список пользователей доступен для авторизованых Юзеров, действия над ними доступны Персоналу (IsAdminUser)
@@ -83,7 +119,7 @@ class UserView(viewsets.ModelViewSet):
             permission_classes = [IsAuthenticated]
         else:
             permission_classes = [IsAdminUser]
-        return [permission() for permission in permission_classes]
+        return [permission() for permission in permission_classes]'''
 
 
 # ############################################### Заказы #######################################################
@@ -91,10 +127,17 @@ class OrderListView(generics.ListCreateAPIView):
     """
     вывод списка заказов и создание одного заказа
     get, post
-    доступ: админы и создатель заказа
+    доступ: Суперпользователь и создатель заказа
     """
     queryset = Order.objects.order_by('customer')
     serializer_class = OrderListSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        if self.request.user.is_superuser:
+            return Order.objects.all()
+        else:
+            return Order.objects.filter(customer=self.request.user.id)
 
 
 class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
