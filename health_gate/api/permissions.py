@@ -4,7 +4,7 @@ from rest_framework import permissions
 
 class CustomerOrderOrReadOnly(permissions.BasePermission):
     """
-    Кастомное разрешение только для создателей заказа или Админа (is_staff)
+    Кастомное разрешение только для создателей заказа или Суперпользователя
     """
 
     def has_permission(self, request, view):
@@ -13,6 +13,37 @@ class CustomerOrderOrReadOnly(permissions.BasePermission):
         return False
 
     def has_object_permission(self, request, view, obj):
-        if obj.customer == request.user or request.user.is_staff:
+        if obj.customer == request.user or request.user.is_superuser:
+            return True
+        return False
+
+
+class AuthorComment(permissions.BasePermission):
+    """
+    Кастомное разрешение для действий над комментариями
+    """
+
+    def has_permission(self, request, view):
+        if request.user.is_authenticated:
+            return True
+        return False
+
+    def has_object_permission(self, request, view, obj):
+        if obj.author == request.user or request.user.is_superuser:
+            return True
+        return False
+
+
+class RecipeOwner(permissions.BasePermission):
+    """
+    Кастомное разрешение для действий над рецептами
+    """
+    def has_permission(self, request, view):
+        if request.user.is_authenticated:
+            return True
+        return False
+
+    def has_object_permission(self, request, view, obj):
+        if obj.owner == request.user or request.user.is_superuser:
             return True
         return False
