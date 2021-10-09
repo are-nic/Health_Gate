@@ -1,5 +1,8 @@
 from rest_framework import serializers
-from .models import Recipe, Ingredient, Comment, Product, CookStep
+from .models import Recipe, Ingredient, Comment, Product, CookStep, Category, Kitchen, Tag
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 class IngredientSerializer(serializers.ModelSerializer):
@@ -33,8 +36,10 @@ class CookStepSerializer(serializers.ModelSerializer):
 
 class RecipeListSerializer(serializers.ModelSerializer):
     """Список рецептов"""
-    # category = serializers.SlugRelatedField(slug_field='name', read_only=True)
-    # owner = serializers.CharField(source="owner.phone_number", read_only=True)
+    category = serializers.SlugRelatedField(slug_field='name', queryset=Category.objects.all())
+    kitchen = serializers.SlugRelatedField(slug_field='name', queryset=Kitchen.objects.all())
+    owner = serializers.ReadOnlyField(source='owner.phone_number')
+    tags = serializers.SlugRelatedField(many=True, slug_field='name', queryset=Tag.objects.all())
 
     class Meta:
         model = Recipe
