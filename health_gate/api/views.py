@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticated
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from food.models import Recipe, Comment, Ingredient, Product, CookStep
@@ -19,7 +20,20 @@ User = get_user_model()
 
 
 # ############################################### Рецепты #######################################################
-# используем generecs классы т.к. имеем два сериализатора для Рецептов
+# используем generics-классы, т.к. имеем два сериализатора для Рецептов
+class RecommendRecipesListView(generics.ListAPIView):
+    """
+    Вывод списка рекомендованных рецептов в соответствии с тегами Юзера
+    Доступен для авторизованных юзеров
+    """
+    serializer_class = RecipeListSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return Recipe.objects.filter(tags__name__in=list(user.tags.all())).order_by("date_created")
+
+
 class RecipeListView(generics.ListCreateAPIView):
     """
     вывод списка рецептов и создание одного рецепта
@@ -45,21 +59,32 @@ class RecipeListView(generics.ListCreateAPIView):
         serializer.save(owner=self.request.user)
 
 
-class RecipeDetailView(generics.RetrieveUpdateDestroyAPIView):
+class RecipeDetailView(generics.RetrieveUpdateDestroyAPIView, ):
     """
     Для чтения-записи-удаления конечных точек для экземпляра одного рецепта
-    обработчик методов get, put, patch и delete
+    Обработчик методов get, put, patch и delete
     """
     queryset = Recipe.objects.all()
     serializer_class = RecipeDetailSerializer
-    permission_classes = [RecipeOwner]
+
+    def get_permissions(self):
+        """
+        Просмотр деталей любого рецепта доступен авторизованному пользователю
+        Какие-либо дейсвтия над рецептами доступны владельцам рецептов и суперпользователю
+        :return: список разрешений
+        """
+        if self.request.method == 'GET':
+            permission_classes = [IsAuthenticated]
+        else:
+            permission_classes = [RecipeOwner]
+        return [permission() for permission in permission_classes]
 
 
 class IngredientView(viewsets.ModelViewSet):
     """
     Конечная точка API, позволяющая просматривать, создавать или редактировать ингредиенты рецептов.
     get, post, put, patch, delete
-    сортировка по рецептам
+    Сортировка по рецептам
     """
     queryset = Ingredient.objects.order_by('recipe')
     serializer_class = IngredientSerializer
