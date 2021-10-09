@@ -121,7 +121,7 @@ class Tag(models.Model):
     Тэги
     """
     subtype = models.ForeignKey(Subtype, verbose_name='Подтип предпочтений/тегов', on_delete=models.CASCADE)
-    name = models.CharField(max_length=100, verbose_name='Тэг')
+    name = models.CharField(max_length=100, verbose_name='Тэг', unique=True)
 
     class Meta:
         ordering = ('name',)
