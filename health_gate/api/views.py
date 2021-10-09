@@ -1,10 +1,10 @@
 from django.contrib.auth import get_user_model
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from food.models import Recipe, Comment, Ingredient, Product, CookStep
 from order.models import Order, OrderRecipe, OrderProduct
-from rest_framework import viewsets, generics, permissions
+from rest_framework import viewsets, generics, permissions, status
 from .permissions import CustomerOrderOrReadOnly, AuthorComment, RecipeOwner
 from user.serializers import UserSerializer
 from order.serializers import OrderListSerializer, OrderDetailSerializer, OrderRecipeSerializer, OrderProductSerializer
@@ -19,16 +19,30 @@ User = get_user_model()
 
 
 # ############################################### Рецепты #######################################################
-# используем generecs классы т.к. имеем два сериализвтора для Рецептов
+# используем generecs классы т.к. имеем два сериализатора для Рецептов
 class RecipeListView(generics.ListCreateAPIView):
     """
     вывод списка рецептов и создание одного рецепта
     get, post
+    Запостить рецепт может пользователь из группы "bloger"
     """
     # queryset = Recipe.objects.filter(is_active=True)        # получаем все рецепты из БД, которые прошли модерацию
     queryset = Recipe.objects.all()
     serializer_class = RecipeListSerializer
     permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        if request.user.groups.filter(name='bloger').exists():
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response({"error": "Недостаточно прав для создания рецепта"})
+
+    def perform_create(self, serializer):
+        """при создании рецепта через post запрос текущий юзер становится его создателем"""
+        serializer.save(owner=self.request.user)
 
 
 class RecipeDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -105,10 +119,23 @@ class UserView(viewsets.ModelViewSet):
     serializer_class = UserSerializer
 
     def get_queryset(self):
+        """
+        если пользователь - Суперпользователь, то он может читать и совершать действия над аккаунтами
+        любой другой юзер может видеть свой аккаунт и производить с ним действия
+        """
         if self.request.user.is_superuser:
             return User.objects.all()
         else:
             return User.objects.filter(id=self.request.user.id)
+
+    '''def destroy(self, request, pk=None, **kwargs):
+        """
+        при удалении аккаунта из группы "bloger" он получает статус Неактивного (is_active = False)
+        """
+        if request.user.groups.filter(name='bloger').exists():
+            request.user.is_active = False
+            request.user.save()
+            return Response(status=204)'''
 
     '''def get_permissions(self):
         """
