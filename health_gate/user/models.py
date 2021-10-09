@@ -23,8 +23,6 @@ class CustomUser(AbstractUser):
     tik_tok = models.URLField(verbose_name='Tik-Tok', blank=True)
     patreon = models.URLField(verbose_name='Patreon', blank=True)
 
-    # is_active = models.BooleanField(default=False, verbose_name='Прошел модерацию')
-
     USERNAME_FIELD = 'phone_number'     # сообщает нам, какое поле мы будем использовать для входа
     REQUIRED_FIELDS = []                # запрашиваемые поля при создании суперпользователя
 
