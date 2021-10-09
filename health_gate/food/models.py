@@ -32,7 +32,7 @@ class Product(models.Model):
     name = models.CharField(max_length=300, verbose_name='Наименование')
     qty_per_item = models.PositiveIntegerField(verbose_name='Кол-во на ед. продукта', null=True, blank=True)
     unit = models.CharField(max_length=10, choices=UNITS, verbose_name='Ед. измерения', null=True, blank=True)
-    # image = models.ImageField(upload_to='products/%Y/%m/%d', blank=True, verbose_name='Фото')
+    # image = models.ImageField(upload_to='recipes/%Y/%m/%d', blank=True, verbose_name='Фото')
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Цена', default=0.00)
     stock = models.PositiveIntegerField(verbose_name='Остаток ед. продукта', default=1)
     available = models.BooleanField(default=True, verbose_name='В наличии')
