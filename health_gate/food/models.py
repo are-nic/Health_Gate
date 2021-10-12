@@ -5,7 +5,6 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from slugify import slugify
 
-
 User = settings.AUTH_USER_MODEL
 
 
@@ -32,7 +31,7 @@ class Product(models.Model):
     name = models.CharField(max_length=300, verbose_name='Наименование')
     qty_per_item = models.PositiveIntegerField(verbose_name='Кол-во на ед. продукта', null=True, blank=True)
     unit = models.CharField(max_length=10, choices=UNITS, verbose_name='Ед. измерения', null=True, blank=True)
-    # image = models.ImageField(upload_to='recipes/%Y/%m/%d', blank=True, verbose_name='Фото')
+    # image = models.ImageField(upload_to='products/%Y/%m/%d', blank=True, verbose_name='Фото')
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Цена', default=0.00)
     stock = models.PositiveIntegerField(verbose_name='Остаток ед. продукта', default=1)
     available = models.BooleanField(default=True, verbose_name='В наличии')
@@ -179,15 +178,6 @@ class Recipe(models.Model):
         self.slug = slugify(self.title)
         return super(Recipe, self).save(*args, **kwargs)
 
-    @property
-    def imageURL(self):
-        """метод для использования в шаблонах ссылки на изображение рецепта"""
-        try:
-            url = self.image.url
-        except:
-            url = ''
-        return url
-
 
 class Ingredient(models.Model):
     """
@@ -231,7 +221,7 @@ class CookStep(models.Model):
     recipe = models.ForeignKey(Recipe, verbose_name='Рецепт', on_delete=models.CASCADE, related_name='steps')
     title = models.CharField(max_length=200, verbose_name='Заголовок шага')
     description = models.TextField(verbose_name='Описание шага')
-    image = models.ImageField(verbose_name='Фото шага', blank=True, null=True, upload_to='steps')   # указать путь
+    image = models.ImageField(verbose_name='Фото шага', blank=True, null=True, upload_to='steps')  # указать путь
 
     class Meta:
         ordering = ('title',)
@@ -247,7 +237,7 @@ class Comment(models.Model):
     """
     Комментарий к рецепту
     """
-    author = models.ForeignKey(User, verbose_name='Автор комментария', on_delete=models.CASCADE)
+    author = models.ForeignKey(User, verbose_name='Автор комментария', on_delete=models.CASCADE, null=True)
     recipe = models.ForeignKey(Recipe, verbose_name='Рецепт', on_delete=models.CASCADE, related_name='comments')
     text = models.TextField(verbose_name='Текст комментария')
     created = models.DateTimeField(auto_now_add=True, verbose_name='Создан')
