@@ -22,16 +22,24 @@ from user.views import UserView
 
 router = SimpleRouter(trailing_slash=False)
 
-# альтернативный доступ к заказам и рецептам заказа
+# альтернативные маршруты к заказам и рецептам заказа
 # /order - все заказы тукущего пользователя
-# /order/1 - детали заказа по id = 1
-# /order/1/recipe - все рецепты заказа по id = 1
-# /order/1/recipe/2 - детали рецепта по id = 2 заказа по id = 1
+# /order/{pk} - детали заказа по id
 router.register('order', OrderViewSet, basename='order')
+# /order/{order_pk}/recipe - все рецепты заказа
 order_router = routers.NestedSimpleRouter(router, 'order', lookup='order')
+# /order/{order_pk}/recipe/{recipe_pk} - детали рецепта по id рецепта
 order_router.register('recipe', OrderRecipeViewSet, basename='recipe')
 
-router.register('users', UserView)
+# вложенные маршруты к заказам через пользователя
+# /users - все аккаунты доступные для Superuser или аккаунт текущего Юзера
+# /users/{pk} - детали аккаунта
+router.register('users', UserView, basename='users')
+# /users/{users_pk}/user-orders - все заказы пользователя
+users_router = routers.NestedSimpleRouter(router, 'users', lookup='users')
+# /users/{users_pk}/user-orders/{order_pk} - детали заказа по id заказа
+users_router.register('user-orders', OrderViewSet, basename='user-orders')
+
 router.register('comments', CommentView)
 router.register('ingredients', IngredientView, basename='ingredients')
 router.register('order-recipes', OrderRecipeView)
@@ -50,3 +58,4 @@ urlpatterns = [
 ]
 urlpatterns += router.urls
 urlpatterns += order_router.urls
+urlpatterns += users_router.urls
