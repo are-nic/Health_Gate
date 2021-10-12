@@ -1,4 +1,4 @@
-from django.urls import path, include
+from django.urls import path
 from rest_framework.routers import SimpleRouter
 from rest_framework_nested import routers
 
@@ -8,8 +8,9 @@ from food.views import (RecommendRecipesListView,
                         ProductView,
                         CookStepsByRecipeView,
                         CookStepDetailView,
-                        RecipeListView,
-                        RecipeDetailView)
+                        # RecipeListView,
+                        # RecipeDetailView,
+                        RecipeViewSet)
 
 from order.views import (OrderViewSet,
                          OrderRecipeViewSet,
@@ -45,11 +46,12 @@ router.register('ingredients', IngredientView, basename='ingredients')
 router.register('order-recipes', OrderRecipeView)
 router.register('order-product', OrderProductView)
 router.register('products', ProductView)
+router.register('recipes', RecipeViewSet)
 
 
 urlpatterns = [
-    path('recipes', RecipeListView.as_view()),
-    path('recipes/<int:pk>', RecipeDetailView.as_view()),
+    #path('recipes', RecipeListView.as_view()),
+    #path('recipes/<int:pk>', RecipeDetailView.as_view()),
     path('recipes-recommend', RecommendRecipesListView.as_view()),
     path('steps', CookStepsByRecipeView.as_view()),
     path('steps/<int:pk>', CookStepDetailView.as_view()),
