@@ -5,10 +5,34 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
+class ChoiceField(serializers.ChoiceField):
+    """
+    Настраиваемый сериализатор для поля выбора значений
+    """
+    def to_representation(self, obj):
+        # Предоставляет читабельное значение из списка choices полей модели
+        if obj == '' and self.allow_blank:
+            return obj
+        return self._choices[obj]
+
+    def to_internal_value(self, data):
+        # Поддерживает отправляемые значения через post, put, patch методы
+        if data == '' and self.allow_blank:
+            return ''
+
+        for key, val in self._choices.items():
+            if val == data:
+                return key
+        self.fail('invalid_choice', input=data)
+
+
 class IngredientSerializer(serializers.ModelSerializer):
     """
     Ингредиент
     """
+    recipe = serializers.SlugRelatedField(slug_field='title', queryset=Recipe.objects.all())
+    unit = ChoiceField(choices=Ingredient.UNITS)
+
     class Meta:
         model = Ingredient
         fields = '__all__'
@@ -18,7 +42,8 @@ class CommentSerializer(serializers.ModelSerializer):
     """
     Комментария к рецепту
     """
-    author = serializers.CharField(source="author.phone_number", read_only=True)
+    # author = serializers.ReadOnlyField(source='author.phone_number')
+    recipe = serializers.SlugRelatedField(slug_field='title', queryset=Recipe.objects.all())
 
     class Meta:
         model = Comment
@@ -27,8 +52,10 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class CookStepSerializer(serializers.ModelSerializer):
     """
-    Шаги приготовления к рецепту
+    Шаги приготовления рецепт
     """
+    recipe = serializers.SlugRelatedField(slug_field='title', queryset=Recipe.objects.all())
+
     class Meta:
         model = CookStep
         fields = '__all__'
@@ -36,9 +63,10 @@ class CookStepSerializer(serializers.ModelSerializer):
 
 class RecipeListSerializer(serializers.ModelSerializer):
     """Список рецептов"""
+    owner = serializers.ReadOnlyField(source='owner.phone_number')
+    level = ChoiceField(choices=Recipe.LEVEL)
     category = serializers.SlugRelatedField(slug_field='name', queryset=Category.objects.all())
     kitchen = serializers.SlugRelatedField(slug_field='name', queryset=Kitchen.objects.all())
-    owner = serializers.ReadOnlyField(source='owner.phone_number')
     tags = serializers.SlugRelatedField(many=True, slug_field='name', queryset=Tag.objects.all())
 
     class Meta:
@@ -48,12 +76,13 @@ class RecipeListSerializer(serializers.ModelSerializer):
 
 class RecipeDetailSerializer(serializers.ModelSerializer):
     """Один рецепт"""
-    owner = serializers.CharField(source="owner.phone_number", read_only=True)
-    category = serializers.SlugRelatedField(slug_field='name', read_only=True)
-    kitchen = serializers.SlugRelatedField(slug_field='name', read_only=True)
+    owner = serializers.ReadOnlyField(source='owner.phone_number')
+    category = serializers.SlugRelatedField(slug_field='name', queryset=Category.objects.all())
+    kitchen = serializers.SlugRelatedField(slug_field='name', queryset=Kitchen.objects.all())
     ingredients = IngredientSerializer(many=True)
+    level = ChoiceField(choices=Recipe.LEVEL)
     steps = CookStepSerializer(many=True)
-    tags = serializers.SlugRelatedField(slug_field='name', read_only=True, many=True)
+    tags = serializers.SlugRelatedField(many=True, slug_field='name', queryset=Tag.objects.all())
     comments = CommentSerializer(many=True)
 
     class Meta:
