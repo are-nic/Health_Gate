@@ -40,7 +40,7 @@ class OrderRecipe(models.Model):
     Модель Рецепта в заказе
     """
     order = models.ForeignKey(Order, related_name='recipes', on_delete=models.CASCADE, verbose_name='Заказ')
-    recipe = models.ForeignKey(Recipe, related_name='order_recipe', on_delete=models.CASCADE, verbose_name='Рецепт')
+    recipe = models.ForeignKey(Recipe, related_name='recipes', on_delete=models.CASCADE, verbose_name='Рецепт')
     qty = models.PositiveIntegerField(verbose_name='Кол-во порций')
 
     class Meta:
@@ -58,7 +58,7 @@ class OrderProduct(models.Model):
     Модель Продукта в заказе
     """
     order = models.ForeignKey(Order, related_name='products', on_delete=models.CASCADE, verbose_name='Заказ')
-    recipe = models.ForeignKey(OrderRecipe, related_name='order_recipe', on_delete=models.CASCADE, verbose_name='Рецепт')
+    recipe = models.ForeignKey(OrderRecipe, related_name='products', on_delete=models.CASCADE, verbose_name='Рецепт')
     product = models.ForeignKey(Product, related_name='order_product', on_delete=models.CASCADE, verbose_name='Продукт')
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Цена')
     qty = models.PositiveIntegerField(verbose_name='Кол-во единиц')
