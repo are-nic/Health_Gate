@@ -28,38 +28,12 @@ class RecommendRecipesListView(generics.ListAPIView):
         return Recipe.objects.filter(tags__name__in=list(user.tags.all())).order_by("date_created")
 
 
-class RecipeListView(generics.ListCreateAPIView):
+class RecipeViewSet(viewsets.ModelViewSet):
     """
-    вывод списка рецептов и создание одного рецепта
-    get, post
-    Запостить рецепт может пользователь из группы "bloger"
-    """
-    # queryset = Recipe.objects.filter(is_active=True)        # получаем все рецепты из БД, которые прошли модерацию
-    queryset = Recipe.objects.all()
-    serializer_class = RecipeListSerializer
-    permission_classes = [IsAuthenticated]
-
-    def create(self, request, *args, **kwargs):
-        if request.user.groups.filter(name='bloger').exists():
-            serializer = self.get_serializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            self.perform_create(serializer)
-            headers = self.get_success_headers(serializer.data)
-            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-        return Response({"error": "Недостаточно прав для создания рецепта"})
-
-    def perform_create(self, serializer):
-        """при создании рецепта через post запрос текущий юзер становится его создателем"""
-        serializer.save(owner=self.request.user)
-
-
-class RecipeDetailView(generics.RetrieveUpdateDestroyAPIView):
-    """
-    Для чтения-записи-удаления экземпляра одного рецепта
-    Обработчик методов get, put, patch и delete
+    Дейсвтия над рецептами
+    get, post, put, patch, delete
     """
     queryset = Recipe.objects.all()
-    serializer_class = RecipeDetailSerializer
 
     def get_permissions(self):
         """
@@ -72,6 +46,26 @@ class RecipeDetailView(generics.RetrieveUpdateDestroyAPIView):
         else:
             permission_classes = [RecipeOwner]
         return [permission() for permission in permission_classes]
+
+    def get_serializer_class(self):
+        """выбор сериализатора в зависимости от применяемого метода"""
+        if self.action == 'list':
+            return RecipeListSerializer
+        return RecipeDetailSerializer
+
+    def create(self, request, *args, **kwargs):
+        """переопределение метода для предоставления права создания рецепта только пользователям из группы "bloger" """
+        if request.user.groups.filter(name='bloger').exists():
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response({"error": "Недостаточно прав для создания рецепта"})
+
+    def perform_create(self, serializer):
+        """при создании рецепта через post запрос текущий юзер становится его создателем"""
+        serializer.save(owner=self.request.user)
 
 
 class IngredientView(viewsets.ModelViewSet):
@@ -156,3 +150,61 @@ class ProductView(viewsets.ModelViewSet):
     """Просмотр, создание и редактирование Проодуктов"""
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+
+
+'''class RecipeListView(generics.ListCreateAPIView):
+    """
+    вывод списка рецептов и создание одного рецепта
+    get, post
+    Запостить рецепт может пользователь из группы "bloger"
+    """
+    # queryset = Recipe.objects.filter(is_active=True)        # получаем все рецепты из БД, которые прошли модерацию
+    queryset = Recipe.objects.all()
+    serializer_class = RecipeListSerializer
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        if request.user.groups.filter(name='bloger').exists():
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response({"error": "Недостаточно прав для создания рецепта"})
+
+    def perform_create(self, serializer):
+        """при создании рецепта через post запрос текущий юзер становится его создателем"""
+        serializer.save(owner=self.request.user)
+
+    def get_permissions(self):
+        """
+        Просмотр деталей любого рецепта доступен авторизованному пользователю
+        Какие-либо дейсвтия над рецептами доступны владельцам рецептов и суперпользователю
+        :return: список разрешений
+        """
+        if self.request.method == 'GET':
+            permission_classes = [IsAuthenticated]
+        else:
+            permission_classes = [RecipeOwner]
+        return [permission() for permission in permission_classes]
+
+
+class RecipeDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Для чтения-записи-удаления экземпляра одного рецепта
+    Обработчик методов get, put, patch и delete
+    """
+    queryset = Recipe.objects.all()
+    serializer_class = RecipeDetailSerializer
+
+    def get_permissions(self):
+        """
+        Просмотр деталей любого рецепта доступен авторизованному пользователю
+        Какие-либо дейсвтия над рецептами доступны владельцам рецептов и суперпользователю
+        :return: список разрешений
+        """
+        if self.request.method == 'GET':
+            permission_classes = [IsAuthenticated]
+        else:
+            permission_classes = [RecipeOwner]
+        return [permission() for permission in permission_classes]'''
