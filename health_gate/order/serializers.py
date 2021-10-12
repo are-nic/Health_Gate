@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from food.models import Recipe
+from food.models import Recipe, Product
 from .models import Order, OrderRecipe, OrderProduct, MealPlanRecipe
 from food.serializers import ChoiceField
 
@@ -8,18 +8,18 @@ class OrderProductSerializer(serializers.ModelSerializer):
     """
     Продукт заказа
     """
-    recipe = serializers.SlugRelatedField(slug_field='title', queryset=Recipe.objects.all())
+    product = serializers.SlugRelatedField(slug_field='name', queryset=Product.objects.all())
 
     class Meta:
         model = OrderProduct
-        fields = '__all__'
+        exclude = ['order', 'recipe']
 
 
 class OrderRecipeSerializer(serializers.ModelSerializer):
     """
     Рецепт заказа
     """
-    # products = OrderProductSerializer(many=True)
+    products = OrderProductSerializer(many=True)
     recipe = serializers.SlugRelatedField(slug_field='title', queryset=Recipe.objects.all())
 
     class Meta:
