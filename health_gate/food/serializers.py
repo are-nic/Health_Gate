@@ -7,7 +7,7 @@ User = get_user_model()
 
 class ChoiceField(serializers.ChoiceField):
     """
-    Настраиваемый сериализатор для поля выбора значений
+    Настраиваемое поле для поля выбора значений
     """
     def to_representation(self, obj):
         # Предоставляет читабельное значение из списка choices полей модели
@@ -31,7 +31,7 @@ class IngredientSerializer(serializers.ModelSerializer):
     Ингредиент
     """
     recipe = serializers.SlugRelatedField(slug_field='title', queryset=Recipe.objects.all())
-    unit = ChoiceField(choices=Ingredient.UNITS)
+    unit = serializers.ChoiceField(choices=Ingredient.UNITS)
 
     class Meta:
         model = Ingredient
@@ -42,7 +42,7 @@ class CommentSerializer(serializers.ModelSerializer):
     """
     Комментария к рецепту
     """
-    # author = serializers.ReadOnlyField(source='author.phone_number')
+    author = serializers.ReadOnlyField(source='author.phone_number')
     recipe = serializers.SlugRelatedField(slug_field='title', queryset=Recipe.objects.all())
 
     class Meta:
@@ -79,11 +79,11 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
     owner = serializers.ReadOnlyField(source='owner.phone_number')
     category = serializers.SlugRelatedField(slug_field='name', queryset=Category.objects.all())
     kitchen = serializers.SlugRelatedField(slug_field='name', queryset=Kitchen.objects.all())
-    ingredients = IngredientSerializer(many=True)
+    ingredients = IngredientSerializer(many=True, required=False)
     level = ChoiceField(choices=Recipe.LEVEL)
-    steps = CookStepSerializer(many=True)
+    steps = CookStepSerializer(many=True, required=False)
     tags = serializers.SlugRelatedField(many=True, slug_field='name', queryset=Tag.objects.all())
-    comments = CommentSerializer(many=True)
+    comments = CommentSerializer(many=True, required=False)
 
     class Meta:
         model = Recipe
