@@ -4,11 +4,18 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from food.models import Recipe, Comment, Ingredient, Product, CookStep
-from order.models import Order, OrderRecipe, OrderProduct
+from order.models import Order, OrderRecipe, OrderProduct, MealPlanRecipe
 from rest_framework import viewsets, generics, permissions, status
-from .permissions import CustomerOrderOrReadOnly, AuthorComment, RecipeOwner
+from .permissions import CustomerOrderOrReadOnly, AuthorComment, RecipeOwner, IsOwnerRecipeIngredients, IsSuperUser
 from user.serializers import UserSerializer
-from order.serializers import OrderListSerializer, OrderDetailSerializer, OrderRecipeSerializer, OrderProductSerializer
+
+from order.serializers import (OrderSerializer,
+                               OrderListSerializer,
+                               OrderDetailSerializer,
+                               OrderRecipeSerializer,
+                               OrderProductSerializer,
+                               MealPlanRecipeSerializer)
+
 from food.serializers import (RecipeListSerializer,
                               RecipeDetailSerializer,
                               IngredientSerializer,
@@ -59,9 +66,9 @@ class RecipeListView(generics.ListCreateAPIView):
         serializer.save(owner=self.request.user)
 
 
-class RecipeDetailView(generics.RetrieveUpdateDestroyAPIView, ):
+class RecipeDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
-    Для чтения-записи-удаления конечных точек для экземпляра одного рецепта
+    Для чтения-записи-удаления экземпляра одного рецепта
     Обработчик методов get, put, patch и delete
     """
     queryset = Recipe.objects.all()
@@ -82,12 +89,38 @@ class RecipeDetailView(generics.RetrieveUpdateDestroyAPIView, ):
 
 class IngredientView(viewsets.ModelViewSet):
     """
-    Конечная точка API, позволяющая просматривать, создавать или редактировать ингредиенты рецептов.
+    Просмотр, создавание или редактирование ингредиентов рецептов.
     get, post, put, patch, delete
     Сортировка по рецептам
     """
-    queryset = Ingredient.objects.order_by('recipe')
     serializer_class = IngredientSerializer
+    permission_classes = [IsOwnerRecipeIngredients]
+
+    def get_queryset(self):
+        """
+        Фильтр ингредиентов рецептов, пользователем которых является текущий Юзер
+        """
+        return Ingredient.objects.all().filter(recipe__owner=self.request.user).order_by('recipe')
+
+
+class CookStepsByRecipeView(generics.ListCreateAPIView):
+    """
+    получение списка шагов приготовления по конкретному рецепту
+    создание шага приготовления
+    """
+    queryset = CookStep.objects.all()
+    serializer_class = CookStepSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """для получения шагов приготовления по конкретному рецепту"""
+        recipe = self.kwargs.get('recipe_pk')
+        return self.queryset.filter(recipe_pk=recipe)
+
+
+class CookStepDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = CookStep.objects.all()
+    serializer_class = CookStepSerializer
 
 
 class CookStepView(viewsets.ModelViewSet):
@@ -96,27 +129,40 @@ class CookStepView(viewsets.ModelViewSet):
     get, post, put, patch, delete
     сортировка по рецептам
     """
-    queryset = CookStep.objects.order_by('recipe')
+    queryset = CookStep.objects.all()
     serializer_class = CookStepSerializer
+
+    def get_queryset(self):
+        """
+        Фильтр шагов приготовления рецепта, пользователем которого является текущий Юзер
+        """
+        return self.queryset.filter(recipe__owner=self.request.user).order_by('recipe')
 
 
 class CommentView(viewsets.ModelViewSet):
     """
-    Конечная точка API, позволяющая просматривать, создавать или редактировать комментарии к рецептам.
+    Читать, создавать или редактировать комментарии к рецептам.
     get, post, put, patch, delete
     сортировка по рецептам
     доступ: чтение и создание комментариев доступен всем авторизованным.
-            Действия над комментами - для суперапользователя или автора коммента
+            Действия над комментами - для суперпользователя или автора коммента
+            список всех комментов не является необходимостью, поэтому доступен только суперюзеру
     """
     queryset = Comment.objects.order_by('recipe')
     serializer_class = CommentSerializer
 
     def get_permissions(self):
-        if self.action == 'list' or self.action == 'retrieve' or self.action == 'create':
+        if self.action == 'list':
+            permission_classes = [IsSuperUser]
+        elif self.action == 'retrieve' or self.action == 'create':
             permission_classes = [IsAuthenticated]
         else:
             permission_classes = [AuthorComment]
         return [permission() for permission in permission_classes]
+
+    def perform_create(self, serializer):
+        """при создании комментария через POST-запрос текущий юзер становится его создателем"""
+        serializer.save(author=self.request.user)
 
 
 class ProductView(viewsets.ModelViewSet):
@@ -128,7 +174,7 @@ class ProductView(viewsets.ModelViewSet):
 # ############################################### Пользователи #######################################################
 class UserView(viewsets.ModelViewSet):
     """
-    Конечная точка API, позволяющая просматривать, создавать или редактировать пользователей.
+    Просмотр, создание, редактирование, удаление аккаунтов.
     get, post, put, patch, delete
     Неаутентифицированные пользователи могут отправить GET-запрос для получения списка пользователей,
     но он будет пустым, потому что возвращаемый User.objects.filter (id = self.request.user.id) гарантирует,
@@ -138,15 +184,15 @@ class UserView(viewsets.ModelViewSet):
     другой пользовательский объект, будет возвращено: "Не найдено" (поскольку пользователь, к которому он пытается
     получить доступ, отсутствует в наборе запросов).
 
-    Прошедшие проверку пользователи могут делать со своими пользовательскими объектами все, что захотят.
+    Прошедшие проверку пользователи могут совершать действия над своими аккаунтами.
     """
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
     def get_queryset(self):
         """
-        если пользователь - Суперпользователь, то он может читать и совершать действия над аккаунтами
-        любой другой юзер может видеть свой аккаунт и производить с ним действия
+        Если пользователь - Суперпользователь, то он может читать и совершать действия над аккаунтами.
+        Любой другой юзер может видеть свой аккаунт и производить над ним действия.
         """
         if self.request.user.is_superuser:
             return User.objects.all()
@@ -175,6 +221,39 @@ class UserView(viewsets.ModelViewSet):
 
 
 # ############################################### Заказы #######################################################
+class OrderViewSet(viewsets.ModelViewSet):
+    """
+    Все методы для работы с заказами.
+    Доступ: создание заказа для любого аутентифицированного юзера
+            действия над заказами доступны для владельцев заказа или суперпользователю
+    """
+    serializer_class = OrderSerializer
+
+    def get_permissions(self):
+        if self.action == 'create':
+            permission_classes = [IsAuthenticated]
+        else:
+            permission_classes = [CustomerOrderOrReadOnly]
+        return [permission() for permission in permission_classes]
+
+    def get_queryset(self):
+        if self.request.user.is_superuser:
+            return Order.objects.all()
+        else:
+            return Order.objects.filter(customer=self.request.user.id)
+
+
+class OrderRecipeViewSet(viewsets.ModelViewSet):
+    """
+    Для взаимодействия с рецептами заказа
+    get, post, put, patch, delete
+    """
+    serializer_class = OrderRecipeSerializer
+
+    def get_queryset(self):
+        return OrderRecipe.objects.filter(order=self.kwargs['order_pk'])
+
+
 class OrderListView(generics.ListCreateAPIView):
     """
     вывод списка заказов и создание одного заказа
@@ -196,7 +275,7 @@ class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
     Для чтения-записи-удаления конечных точек для экземпляра одного заказ
     обработчик методов get, put, patch и delete
-    доступ: админы и создатель заказа
+    доступ:
     """
     queryset = Order.objects.all()
     serializer_class = OrderDetailSerializer
@@ -208,7 +287,7 @@ class OrderRecipeView(viewsets.ModelViewSet):
     Конечная точка API, позволяющая просматривать, создавать или редактировать рецепты заказа.
     get, post, put, patch, delete
     сортировка по заказам
-    доступ: админы и создатель заказа
+    доступ:
     """
     queryset = OrderRecipe.objects.order_by('order')
     serializer_class = OrderRecipeSerializer
@@ -219,7 +298,15 @@ class OrderProductView(viewsets.ModelViewSet):
     Конечная точка API, позволяющая просматривать, создавать или редактировать продукты заказа.
     get, post, put, patch, delete
     сортировка по заказам
-    доступ: админы и создатель заказа
+    доступ:
     """
     queryset = OrderProduct.objects.order_by('recipe')
     serializer_class = OrderProductSerializer
+
+
+class MealPlanRecipeView(viewsets.ModelViewSet):
+    """
+    Чтение, запись, редактирование, удаление рецептов плана питания
+    """
+    queryset = MealPlanRecipe.objects.all().order_by('owner')
+    serializer_class = MealPlanRecipeSerializer
