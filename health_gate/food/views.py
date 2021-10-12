@@ -15,7 +15,6 @@ from .serializers import (RecipeListSerializer,
 User = get_user_model()
 
 
-# используем generics-классы, т.к. имеем два сериализатора для Рецептов
 class RecommendRecipesListView(generics.ListAPIView):
     """
     Вывод списка рекомендованных рецептов в соответствии с тегами Юзера
