@@ -16,3 +16,8 @@ class OrderRecipeInline(admin.TabularInline):
 class OrderAdmin(admin.ModelAdmin):
     list_display = ['id', 'customer', 'created_at', 'updated_at', 'paid']
     inlines = [OrderRecipeInline, OrderProductInline,]
+
+
+@admin.register(MealPlanRecipe)
+class MealPlanRecipeAdmin(admin.ModelAdmin):
+    list_display = ['id', 'owner', 'recipe', 'qty', 'date']
