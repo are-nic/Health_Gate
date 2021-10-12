@@ -38,7 +38,8 @@ class RecipeOwner(permissions.BasePermission):
     """
     Кастомное разрешение для действий над рецептами
     Чтение рецептов доступно любому авторизованному пользователю.
-    Действия над рецептами доступны владельцам рецептов, входящих в группу "bloger" или суперпользователю
+    Создавать рецепты разрешено пользователям из группы "bloger"
+    Действия над рецептами доступны владельцам рецептов или суперпользователю
     """
     def has_permission(self, request, view):
         if request.user.is_authenticated:
@@ -49,5 +50,29 @@ class RecipeOwner(permissions.BasePermission):
         if obj.owner == request.user and request.user.groups.filter(name='bloger').exists():
             return True
         elif request.user.is_superuser:
+            return True
+        return False
+
+
+class IsOwnerRecipeIngredients(permissions.BasePermission):
+    """
+    Разрешения для добавления ингредиентов к рецептам, владельцем которых является текущий Пользователь
+    """
+    def has_object_permission(self, request, view, obj):
+        return obj.recipe.owner == request.user
+
+
+class IsSuperUser(permissions.BasePermission):
+    """
+    Кастомное разрешение для Суперпользователя
+    """
+
+    def has_permission(self, request, view):
+        if request.user.is_superuser:
+            return True
+        return False
+
+    def has_object_permission(self, request, view, obj):
+        if request.user.is_superuser:
             return True
         return False
