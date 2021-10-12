@@ -186,15 +186,15 @@ class Ingredient(models.Model):
     """
 
     UNITS = [
-        ('LITER', 'л.'),
-        ('MILLI', 'мл.'),
-        ('GRAM', 'г.'),
-        ('KILO', 'кг.'),
-        ('PIECES', 'шт.'),
-        ('TASTE', 'по вкусу'),
-        ('TEA SPOON', 'ч. ложка'),
-        ('TABLESPOON', 'ст. ложка'),
-        ('GLASS', 'стакан'),
+        ('л.', 'л.'),
+        ('мл.', 'мл.'),
+        ('г.', 'г.'),
+        ('кг.', 'кг.'),
+        ('шт.', 'шт.'),
+        ('по вкусу', 'по вкусу'),
+        ('ч. ложка', 'ч. ложка'),
+        ('ст. ложка', 'ст. ложка'),
+        ('стакан', 'стакан'),
     ]
 
     recipe = models.ForeignKey(Recipe, verbose_name='Рецепт', on_delete=models.CASCADE, related_name='ingredients')
