@@ -2,23 +2,23 @@ from django.urls import path, include
 from rest_framework.routers import SimpleRouter
 from rest_framework_nested import routers
 
-from .views import (RecommendRecipesListView,
-                    IngredientView,
-                    CommentView,
-                    UserView,
+from food.views import (RecommendRecipesListView,
+                        IngredientView,
+                        CommentView,
+                        ProductView,
+                        CookStepsByRecipeView,
+                        CookStepDetailView,
+                        RecipeListView,
+                        RecipeDetailView)
 
-                    OrderViewSet,
-                    OrderRecipeViewSet,
+from order.views import (OrderViewSet,
+                         OrderRecipeViewSet,
+                         OrderListView,
+                         OrderDetailView,
+                         OrderRecipeView,
+                         OrderProductView)
 
-                    OrderListView,
-                    OrderDetailView,
-                    OrderRecipeView,
-                    OrderProductView,
-                    ProductView,
-                    CookStepsByRecipeView,
-                    CookStepDetailView,
-                    RecipeListView,
-                    RecipeDetailView)
+from user.views import UserView
 
 router = SimpleRouter(trailing_slash=False)
 
