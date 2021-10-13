@@ -21,7 +21,8 @@ COPY ./requirements.txt .
 
 RUN pip install -r requirements.txt
 
-
+RUN apk --update add build-base jpeg-dev zlib-dev
+RUN python3 -m pip install --upgrade Pillow
 
 
 # copy project
