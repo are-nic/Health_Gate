@@ -1,0 +1,38 @@
+version: '3.7'
+
+services:
+  web:
+    build: .
+    command:  sh -c "python manage.py migrate && gunicorn debt.wsgi:application --bind 0.0.0.0:8000 --reload -w 4"
+    volumes:
+      - ./:/usr/src/app/
+      - static_volume:/usr/src/app/static
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./.env.dev
+    depends_on:
+      - db
+  db:
+    image: postgres:12.0-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=heal_user
+      - POSTGRES_PASSWORD=haeryr^dasd^dfg
+      - POSTGRES_DB=heal
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - web
+    volumes:
+      - ./nginx/cert:/etc/ssl/cert
+      - static_volume:/usr/src/app/static
+volumes:
+  postgres_data:
+  static_volume:
