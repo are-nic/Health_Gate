@@ -9,13 +9,28 @@ class OrderProductSerializer(serializers.ModelSerializer):
     Продукт заказа
     """
     product = serializers.SlugRelatedField(slug_field='name', queryset=Product.objects.all())
+    # для переименования поля recipe в ответе
+    order_recipe = serializers.PrimaryKeyRelatedField(source='recipe', queryset=OrderRecipe.objects.all())
 
     class Meta:
         model = OrderProduct
-        exclude = ['order', 'recipe']
+        exclude = ['recipe']
+        # fields = '__all__'
 
 
 class OrderRecipeSerializer(serializers.ModelSerializer):
+    """
+    Рецепт заказа
+    """
+    # products = OrderProductSerializer(many=True)
+    recipe = serializers.SlugRelatedField(slug_field='title', queryset=Recipe.objects.all())
+
+    class Meta:
+        model = OrderRecipe
+        fields = '__all__'
+
+
+class OrderRecipeDetailSerializer(serializers.ModelSerializer):
     """
     Рецепт заказа
     """
@@ -24,9 +39,10 @@ class OrderRecipeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrderRecipe
-        exclude = ['order']
+        fields = '__all__'
 
 
+# -----------------------------------------------------For Nested Routers-----------------------------------------
 class OrderSerializer(serializers.ModelSerializer):
     """Заказ"""
 
@@ -37,6 +53,7 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = '__all__'
+# ------------------------------------------------------------------------------------------------------------
 
 
 class OrderListSerializer(serializers.ModelSerializer):
@@ -64,14 +81,9 @@ class OrderDetailSerializer(serializers.ModelSerializer):
 class MealPlanRecipeSerializer(serializers.ModelSerializer):
     """Рецепт плана питания"""
 
-    owner = serializers.ReadOnlyField(source='owner.phone_number')
-    recipe = serializers.SlugRelatedField(slug_field='name', queryset=Recipe.objects.all())
+    owner = serializers.CharField(source='owner.phone_number', read_only=True)
+    recipe = serializers.SlugRelatedField(slug_field='title', queryset=Recipe.objects.all())
 
     class Meta:
         model = MealPlanRecipe
         fields = '__all__'
-
-    def validate_recipe(self, value):
-        if value.user != self.context['request'].user:
-            raise serializers.ValidationError('Неверный id рецепта')
-        return value
