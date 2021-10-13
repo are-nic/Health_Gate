@@ -11,8 +11,14 @@ urlpatterns = [
     path('api/token/', TokenObtainPairView.as_view()),
     path('api/token/refresh/', TokenRefreshView.as_view()),
     path('api/token/verify/', TokenVerifyView.as_view()),
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+]
 
+#
+# if settings.DEBUG:      # если проект в режиме Дебаг, то директории для медиафайлов здесь
+#     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-if settings.DEBUG:      # если проект в режиме Дебаг, то директории для медиафайлов здесь
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
