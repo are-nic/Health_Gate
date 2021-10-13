@@ -74,34 +74,19 @@ class IngredientView(viewsets.ModelViewSet):
     get, post, put, patch, delete
     Сортировка по рецептам
     """
+    queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = [IsOwnerRecipeIngredients]
 
     def get_queryset(self):
         """
         Фильтр ингредиентов рецептов, пользователем которых является текущий Юзер
+        Если пользователь суперпользователь, то вывести все ингредиенты всех рецептов
+        Иначе вывод только тех шагов, которые относятся к рецептам текущего юзера
         """
-        return Ingredient.objects.all().filter(recipe__owner=self.request.user).order_by('recipe')
-
-
-class CookStepsByRecipeView(generics.ListCreateAPIView):
-    """
-    получение списка шагов приготовления по конкретному рецепту
-    создание шага приготовления
-    """
-    queryset = CookStep.objects.all()
-    serializer_class = CookStepSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        """для получения шагов приготовления по конкретному рецепту"""
-        recipe = self.kwargs.get('recipe_pk')
-        return self.queryset.filter(recipe_pk=recipe)
-
-
-class CookStepDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = CookStep.objects.all()
-    serializer_class = CookStepSerializer
+        if self.request.user.is_superuser:
+            return self.queryset
+        return self.queryset.filter(recipe__owner=self.request.user).order_by('recipe')
 
 
 class CookStepView(viewsets.ModelViewSet):
@@ -116,7 +101,11 @@ class CookStepView(viewsets.ModelViewSet):
     def get_queryset(self):
         """
         Фильтр шагов приготовления рецепта, пользователем которого является текущий Юзер
+        Если пользователь суперпользователь, то вывести все шаги всех рецептов
+        Иначе вывод только тех шагов, которые относятся к рецептам текущего юзера
         """
+        if self.request.user.is_superuser:
+            return self.queryset
         return self.queryset.filter(recipe__owner=self.request.user).order_by('recipe')
 
 
@@ -150,6 +139,27 @@ class ProductView(viewsets.ModelViewSet):
     """Просмотр, создание и редактирование Проодуктов"""
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    permission_classes = [IsSuperUser]
+
+
+'''class CookStepsByRecipeView(generics.ListCreateAPIView):
+    """
+    получение списка шагов приготовления по конкретному рецепту
+    создание шага приготовления
+    """
+    queryset = CookStep.objects.all()
+    serializer_class = CookStepSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """для получения шагов приготовления по конкретному рецепту"""
+        recipe = self.kwargs.get('recipe_pk')
+        return self.queryset.filter(recipe_pk=recipe)
+
+
+class CookStepDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = CookStep.objects.all()
+    serializer_class = CookStepSerializer'''
 
 
 '''class RecipeListView(generics.ListCreateAPIView):
