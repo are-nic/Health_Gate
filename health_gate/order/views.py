@@ -5,6 +5,7 @@ from .serializers import (OrderSerializer,
                           OrderListSerializer,
                           OrderDetailSerializer,
                           OrderRecipeSerializer,
+                          OrderRecipeDetailSerializer,
                           OrderProductSerializer,
                           MealPlanRecipeSerializer)
 from api.permissions import CustomerOrderOrReadOnly
@@ -14,8 +15,10 @@ from rest_framework.permissions import IsAuthenticated
 User = get_user_model()
 
 
+# ---------------------------------------------For Nested Routers--------------------------------------------
 class OrderViewSet(viewsets.ModelViewSet):
     """
+    Создан для вложенных маршрутов, связанных с Заказом
     Все методы для работы с заказами.
     Доступ: создание заказа для любого аутентифицированного юзера
             действия над заказами доступны для владельцев заказа или суперпользователю
@@ -38,6 +41,7 @@ class OrderViewSet(viewsets.ModelViewSet):
 
 class OrderRecipeViewSet(viewsets.ModelViewSet):
     """
+    Создан для вложенных маршрутов, связанных с Заказом
     Для взаимодействия с рецептами заказа
     get, post, put, patch, delete
     """
@@ -45,6 +49,7 @@ class OrderRecipeViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return OrderRecipe.objects.filter(order=self.kwargs['order_pk'])
+# ----------------------------------------------------------------------------------------------------------
 
 
 class OrderListView(generics.ListCreateAPIView):
@@ -80,10 +85,21 @@ class OrderRecipeView(viewsets.ModelViewSet):
     Конечная точка API, позволяющая просматривать, создавать или редактировать рецепты заказа.
     get, post, put, patch, delete
     сортировка по заказам
-    доступ:
+    доступ: Ко всем рецептам заказов всех пользователей для суперюзера
+            К рецептам заказов конкретного юзера для текущего пользователя
     """
     queryset = OrderRecipe.objects.order_by('order')
-    serializer_class = OrderRecipeSerializer
+
+    def get_queryset(self):
+        if self.request.user.is_superuser:
+            return self.queryset
+        return self.queryset.filter(order__customer=self.request.user)
+
+    def get_serializer_class(self):
+        """выбор сериализатора в зависимости от применяемого метода"""
+        if self.action == 'list':
+            return OrderRecipeSerializer
+        return OrderRecipeDetailSerializer
 
 
 class OrderProductView(viewsets.ModelViewSet):
@@ -96,10 +112,26 @@ class OrderProductView(viewsets.ModelViewSet):
     queryset = OrderProduct.objects.order_by('recipe')
     serializer_class = OrderProductSerializer
 
+    def get_queryset(self):
+        if self.request.user.is_superuser:
+            return self.queryset
+        return self.queryset.filter(order__customer=self.request.user)
+
 
 class MealPlanRecipeView(viewsets.ModelViewSet):
     """
     Чтение, запись, редактирование, удаление рецептов плана питания
+    доступ: список всех планов питани и действия над ними для Суперюзера
+            для пользователей - вывод только их планов питания и дейсвтия над ними
     """
     queryset = MealPlanRecipe.objects.all().order_by('owner')
     serializer_class = MealPlanRecipeSerializer
+
+    def get_queryset(self):
+        if self.request.user.is_superuser:
+            return self.queryset
+        return self.queryset.filter(owner=self.request.user)
+
+    def perform_create(self, serializer):
+        """при создании плана через post запрос текущий юзер становится его создателем"""
+        serializer.save(owner=self.request.user)
