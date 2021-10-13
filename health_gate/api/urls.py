@@ -6,10 +6,7 @@ from food.views import (RecommendRecipesListView,
                         IngredientView,
                         CommentView,
                         ProductView,
-                        CookStepsByRecipeView,
-                        CookStepDetailView,
-                        # RecipeListView,
-                        # RecipeDetailView,
+                        CookStepView,
                         RecipeViewSet)
 
 from order.views import (OrderViewSet,
@@ -17,7 +14,8 @@ from order.views import (OrderViewSet,
                          OrderListView,
                          OrderDetailView,
                          OrderRecipeView,
-                         OrderProductView)
+                         OrderProductView,
+                         MealPlanRecipeView)
 
 from user.views import UserView
 
@@ -41,20 +39,19 @@ users_router = routers.NestedSimpleRouter(router, 'users', lookup='users')
 # /users/{users_pk}/user-orders/{order_pk} - детали заказа по id заказа
 users_router.register('user-orders', OrderViewSet, basename='user-orders')
 
-router.register('comments', CommentView)
-router.register('ingredients', IngredientView, basename='ingredients')
 router.register('order-recipes', OrderRecipeView)
-router.register('order-product', OrderProductView)
+router.register('order-products', OrderProductView)
+
 router.register('products', ProductView)
 router.register('recipes', RecipeViewSet)
+router.register('steps', CookStepView)
+router.register('ingredients', IngredientView, basename='ingredients')
+router.register('comments', CommentView)
 
+router.register('meal-plan', MealPlanRecipeView)
 
 urlpatterns = [
-    #path('recipes', RecipeListView.as_view()),
-    #path('recipes/<int:pk>', RecipeDetailView.as_view()),
     path('recipes-recommend', RecommendRecipesListView.as_view()),
-    path('steps', CookStepsByRecipeView.as_view()),
-    path('steps/<int:pk>', CookStepDetailView.as_view()),
     path('orders', OrderListView.as_view()),
     path('orders/<int:pk>', OrderDetailView.as_view())
 ]
