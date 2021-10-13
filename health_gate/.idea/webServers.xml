@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="9b05c9bf-a1a6-4916-829e-a473a04fc1d2" name="healBackServer">
+        <fileTransfer accessType="SFTP" host="151.248.112.170" port="22" sshConfigId="b3f2cf8f-eac0-4f0f-9c2b-1807f0a20082" sshConfig="root@151.248.112.170:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
