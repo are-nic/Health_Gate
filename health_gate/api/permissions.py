@@ -59,6 +59,8 @@ class IsOwnerRecipeIngredients(permissions.BasePermission):
     Разрешения для добавления ингредиентов к рецептам, владельцем которых является текущий Пользователь
     """
     def has_object_permission(self, request, view, obj):
+        if request.user.is_superuser:
+            return True
         return obj.recipe.owner == request.user
 
 
