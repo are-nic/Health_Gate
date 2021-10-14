@@ -2,7 +2,7 @@
 
 ----------------------------------------- ПОЛЬЗОВАТЕЛЬ ----------------------------------------
 
-http://api.healthgate.club/api/v1/users
+https://api.healthgate.club/api/v1/users
 
 POST запросом отправляются обязательные параметры:
 
@@ -31,12 +31,12 @@ POST запросом отправляются обязательные пара
 
 Доступны все методы: GET, POST, PUT, PATCH, DELETE
 
-http://api.healthgate.club/api/v1/users/{id}
+https://api.healthgate.club/api/v1/users/{id}
 
 
 ----------------------------------------- Доступ к API по токену -----------------------------------------
 
-Заходим на http://api.healthgate.club/api/token/
+Заходим на https://api.healthgate.club/api/token/
 
 Создаем POST запрос c двумя полями в Body:
 
@@ -68,7 +68,7 @@ Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhw
 
 Выполняем запрос:
 
-http://api.healthgate.club/api/v1/recipes/
+https://api.healthgate.club/api/v1/recipes/
 
 Получаем данные.
 
@@ -79,14 +79,14 @@ http://api.healthgate.club/api/v1/recipes/
 
 Метод: GET
 
-url: http://api.healthgate.club/api/v1/recipes-recommend
+url: https://api.healthgate.club/api/v1/recipes-recommend
 
 
 Получение списка всех рецептов, создание рецепта
 
 Метод: GET, POST
 
-url: http://api.healthgate.club/api/v1/recipes
+url: https://api.healthgate.club/api/v1/recipes
 
 Рецепты создаются при условии, что пользователь находится в группе «bloger», либо является суперпользователем
 
@@ -139,7 +139,7 @@ url: http://api.healthgate.club/api/v1/recipes
 
 Метод: GET, PUT, PATCH, DELETE
 
-url: http://api.healthgate.club/api/v1/recipes/{id}
+url: https://api.healthgate.club/api/v1/recipes/{id}
 
 
 
@@ -154,14 +154,14 @@ url: http://api.healthgate.club/api/v1/recipes/{id}
 
 Метод: GET, POST
 
-url: http://api.healthgate.club/api/v1/steps
+url: https://api.healthgate.club/api/v1/steps
 
 
 Получение, обновление, частичное обновление или удаление шага приготовления по id
 
 Метод: GET, PUT, PATCH, DELETE
 
-url: http://api.healthgate.club/api/v1/steps/{id}
+url: https://api.healthgate.club/api/v1/steps/{id}
 
 
 
@@ -176,14 +176,14 @@ url: http://api.healthgate.club/api/v1/steps/{id}
 
 Метод: GET, POST
 
-url: http://api.healthgate.club/api/v1/ingredients
+url: https://api.healthgate.club/api/v1/ingredients
 
 
 Получение, обновление, частичное обновление или удаление шага ингредиента по id
 
 Метод: GET, PUT, PATCH, DELETE
 
-url: http://api.healthgate.club/api/v1/ingredients/{id}
+url: https://api.healthgate.club/api/v1/ingredients/{id}
 
 
 -----------------------------------------КОММЕНТАРИИ К РЕЦЕПТАМ-----------------------------------------
@@ -199,14 +199,14 @@ url: http://api.healthgate.club/api/v1/ingredients/{id}
 
 Метод: GET, POST
 
-url: http://api.healthgate.club/api/v1/comments
+url: https://api.healthgate.club/api/v1/comments
 
 
 Получение, обновление, частичное обновление или удаление комментария по id
 
 Метод: GET, PUT, PATCH, DELETE
 
-url: http://api.healthgate.club/api/v1/comments/{id}
+url: https://api.healthgate.club/api/v1/comments/{id}
 
 
 -----------------------------------------ПРОДУКТ-----------------------------------------
@@ -217,14 +217,14 @@ url: http://api.healthgate.club/api/v1/comments/{id}
 
 Метод: GET, POST
 
-url: http://api.healthgate.club/api/v1/products 
+url: https://api.healthgate.club/api/v1/products 
 
 
 Получение, обновление, частичное обновление или удаление продукта по id
 
 Метод: GET, PUT, PATCH, DELETE
 
-url: http://api.healthgate.club/api/v1/products/{id}
+url: https://api.healthgate.club/api/v1/products/{id}
 
 
 -----------------------------------------ЗАКАЗ-----------------------------------------
@@ -238,14 +238,14 @@ url: http://api.healthgate.club/api/v1/products/{id}
 
 Метод: GET, POST
 
-url: http://api.healthgate.club/api/v1/orders 
+url: https://api.healthgate.club/api/v1/orders 
 
 
 Получение, обновление, частичное обновление или удаление заказа по id
 
 Метод: GET, PUT, PATCH, DELETE
 
-url: http://api.healthgate.club/api/v1/orders/{id}
+url: https://api.healthgate.club/api/v1/orders/{id}
 
 
 Вложенные маршруты к заказам через пользователя
@@ -266,14 +266,14 @@ url: http://api.healthgate.club/api/v1/orders/{id}
 
 Метод: GET, POST
 
-url: http://api.healthgate.club/api/v1/order-recipes 
+url: https://api.healthgate.club/api/v1/order-recipes 
 
 
 Получение, обновление, частичное обновление или удаление рецепта заказа по id
 
 Метод: GET, PUT, PATCH, DELETE
 
-url: http://api.healthgate.club/api/v1/order-recipes/{id}
+url: https://api.healthgate.club/api/v1/order-recipes/{id}
 
 Вложенные маршруты к рецептам заказа через заказ
 
@@ -293,14 +293,14 @@ url: http://api.healthgate.club/api/v1/order-recipes/{id}
 
 Метод: GET, POST
 
-url: http://api.healthgate.club/api/v1/order-products
+url: https://api.healthgate.club/api/v1/order-products
 
 
 Получение, обновление, частичное обновление или удаление продукта заказа по id
 
 Метод: GET, PUT, PATCH, DELETE
 
-url: http://api.healthgate.club/api/v1/order-products/{id}
+url: https://api.healthgate.club/api/v1/order-products/{id}
 
 
 
@@ -314,12 +314,12 @@ url: http://api.healthgate.club/api/v1/order-products/{id}
 
 Метод: GET, POST
 
-url: http://api.healthgate.club/api/v1/meal-plan
+url: https://api.healthgate.club/api/v1/meal-plan
 
 
 Получение, обновление, частичное обновление или удаление продукта заказа по id
 
 Метод: GET, PUT, PATCH, DELETE
 
-url: http://api.healthgate.club/api/v1/meal-plan/{id}
+url: https://api.healthgate.club/api/v1/meal-plan/{id}
 
