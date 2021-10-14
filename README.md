@@ -28,69 +28,123 @@ POST запросом отправляются обязательные пара
 
 
 Вывод всех пользователей доступен суперпользователю. Остальные могут получить только свои аккаунты и производить над ними действия. 
+
 Доступны все методы: GET, POST, PUT, PATCH, DELETE
+
 http://api.healthgate.club/api/v1/users/{id}
 
 
 ----------------------------------------- Доступ к API по токену -----------------------------------------
+
 Заходим на http://api.healthgate.club/api/token/
+
 Создаем POST запрос c двумя полями в Body:
+
 phone_number: +79997007766
+
 password: records0
+
 Получаем в ответе два токена. Используем токен «access». Время жизни токена – 1 сутки 
+
 (можно менять в settings.py - SIMPLE_JWT = {'ACCESS_TOKEN_LIFETIME': timedelta(days=1),...}).
+
 {
+
     "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTYzMzQyNDc2MywianRpIjoiY2RkMjRiOTNlNThhNGNmZGJiYTUyMWIwZjY4ZGJmYjkiLCJ1c2VyX2lkIjo3fQ.Cw6vITWBMr6V8FSzq6472FTDPU_FwshPPMKp9k-RnbM",
+    
     "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjMzMzM4NjYzLCJqdGkiOiI1NTI5ZjQzNzRlZDU0MmIxOTJmZGQ1MTZhYzIxMTA5YyIsInVzZXJfaWQiOjd9.83WoOKk0RXnEVZDOIWDmQB9uHhTpIw8342NazXMsjMs"
+    
 }
 
 Переходим на вкладку запроса данных
+
 В Headers добавляем поле Authorization
+
 Значение поля: Bearer + access токен, который мы получили выше.
+
 Например, так:
+
 Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjMzMzM5NjAyLCJqdGkiOiJjODU0NzI0NDQzYjk0OTA5OTZjMWVlM2U1Zjk0YzgxZCIsInVzZXJfaWQiOjd9.fQmw_v9R6R794jYrMuDCCTlWX-7GX9BW8jB9eCHK5H0
+
 Выполняем запрос:
+
 http://api.healthgate.club/api/v1/recipes/
+
 Получаем данные.
 
+
 -----------------------------------------РЕЦЕПТЫ-----------------------------------------
+
 Получение списка рецептов по рекомендациям (тегам)
+
 Метод: GET
+
 url: http://api.healthgate.club/api/v1/recipes-recommend
 
+
 Получение списка всех рецептов, создание рецепта
+
 Метод: GET, POST
+
 url: http://api.healthgate.club/api/v1/recipes
+
 Рецепты создаются при условии, что пользователь находится в группе «bloger», либо является суперпользователем
+
 В JSON формате необходимые поля:
+
 {
+
     "title": "Каша на топоре",
+    
     "slug": "kasha-na-topore",
+    
     "level": "HARD",
+    
     "no_preservatives": true,
+    
     "cooking_time": "60 минут",
+    
     "protein": 34,
+    
     "fat": 45,
+    
     "carbohydrates": 12,
+    
     "kkal": 400,
+    
     "description": "Издревле национальная русская кухня. Каша на топоре",
+    
     "image": null,
+    
     "price": "770.00",
+    
     "portions": 6,
+    
     "category": "Десерты",
+    
     "kitchen": "Континентальная",
+    
     "tags": [
+    
                 "Здоровое старение"
+                
             ]
+            
 }
+
 Править или удалять рецепт может создатель рецепта либо суперпользователь 
 
+
 Получение, обновление, частичное обновление или удаление одного рецепта по id
+
 Метод: GET, PUT, PATCH, DELETE
+
 url: http://api.healthgate.club/api/v1/recipes/{id}
 
 
+
 -----------------------------------------ШАГИ ПРИГОТОВЛЕНИЯ РЕЦЕПТА-----------------------------------------
+
 Список всех шагов всех рецептов может получить суперпользователь
 Создатель рецепта получает доступ только к шагам приготовления своих рецептов
 
