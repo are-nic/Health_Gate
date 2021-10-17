@@ -11,8 +11,6 @@ from food.views import (RecommendRecipesListView,
 
 from order.views import (OrderViewSet,
                          OrderRecipeViewSet,
-                         OrderListView,
-                         OrderDetailView,
                          OrderRecipeView,
                          OrderProductView,
                          MealPlanRecipeView)
@@ -21,14 +19,14 @@ from user.views import UserView
 
 router = SimpleRouter(trailing_slash=False)
 
-# альтернативные маршруты к заказам и рецептам заказа
+# вложенные маршруты к заказам и рецептам заказа
 # /order - все заказы тукущего пользователя
-# /order/{pk} - детали заказа по id
-router.register('order', OrderViewSet, basename='order')
-# /order/{order_pk}/recipe - все рецепты заказа
-order_router = routers.NestedSimpleRouter(router, 'order', lookup='order')
+# /orders/{pk} - детали заказа по id
+router.register('orders', OrderViewSet, basename='orders')
+# /orders/{orders_pk}/recipe - все рецепты заказа
+orders_router = routers.NestedSimpleRouter(router, 'orders', lookup='orders')
 # /order/{order_pk}/recipe/{recipe_pk} - детали рецепта по id рецепта
-order_router.register('recipe', OrderRecipeViewSet, basename='recipe')
+orders_router.register('recipe', OrderRecipeViewSet, basename='recipe')
 
 # вложенные маршруты к заказам через пользователя
 # /users - все аккаунты доступные для Superuser или аккаунт текущего Юзера
@@ -52,9 +50,7 @@ router.register('meal-plan', MealPlanRecipeView)
 
 urlpatterns = [
     path('recipes-recommend', RecommendRecipesListView.as_view()),
-    path('orders', OrderListView.as_view()),
-    path('orders/<int:pk>', OrderDetailView.as_view())
 ]
 urlpatterns += router.urls
-urlpatterns += order_router.urls
+urlpatterns += orders_router.urls
 urlpatterns += users_router.urls
