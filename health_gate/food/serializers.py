@@ -35,7 +35,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Ingredient
-        fields = '__all__'
+        fields = ['id', 'recipe', 'name', 'qty', 'unit', 'id_product']
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -64,14 +64,15 @@ class CookStepSerializer(serializers.ModelSerializer):
 class RecipeListSerializer(serializers.ModelSerializer):
     """Список рецептов"""
     owner = serializers.ReadOnlyField(source='owner.phone_number')
-    level = ChoiceField(choices=Recipe.LEVEL)
     category = serializers.SlugRelatedField(slug_field='name', queryset=Category.objects.all())
     kitchen = serializers.SlugRelatedField(slug_field='name', queryset=Kitchen.objects.all())
+    level = ChoiceField(choices=Recipe.LEVEL)
     tags = serializers.SlugRelatedField(many=True, slug_field='name', queryset=Tag.objects.all())
 
     class Meta:
         model = Recipe
-        fields = '__all__'
+        #fields = '__all__'
+        exclude = ['is_active', 'date_created']
 
 
 class RecipeDetailSerializer(serializers.ModelSerializer):
@@ -79,7 +80,7 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
     owner = serializers.ReadOnlyField(source='owner.phone_number')
     category = serializers.SlugRelatedField(slug_field='name', queryset=Category.objects.all())
     kitchen = serializers.SlugRelatedField(slug_field='name', queryset=Kitchen.objects.all())
-    ingredients = IngredientSerializer(many=True, required=False)
+    ingredients = IngredientSerializer(many=True)
     level = ChoiceField(choices=Recipe.LEVEL)
     steps = CookStepSerializer(many=True, required=False)
     tags = serializers.SlugRelatedField(many=True, slug_field='name', queryset=Tag.objects.all())
@@ -88,6 +89,59 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = '__all__'
+
+    def update(self, instance, validated_data):
+        """
+        Обновление экземпляра рецепта с ингредиентами и тегами
+        """
+        if 'ingredients' in validated_data:
+            ingredients_data = validated_data.pop('ingredients')
+            ingredients = instance.ingredients.all()
+            ingredients = list(ingredients)
+            for ingredient_data in ingredients_data:
+                ingredient = ingredients.pop(0)
+                ingredient.name = ingredient_data.get('name', ingredient.name)
+                ingredient.qty = ingredient_data.get('qty', ingredient.qty)
+                ingredient.unit = ingredient_data.get('unit', ingredient.unit)
+                ingredient.id_product = ingredient_data.get('id_product', ingredient.id_product)
+                ingredient.save()
+
+        if 'steps' in validated_data:
+            steps_data = validated_data.pop('steps')
+            steps = instance.steps.all()
+            steps = list(steps)
+            for step_data in steps_data:
+                step = steps.pop(0)
+                step.title = step_data.get('title', step.title)
+                step.description = step_data.get('description', step.description)
+                step.image = step_data.get('image', step.image)
+                step.save()
+
+        instance.category = validated_data.get('category', instance.category)
+        instance.kitchen = validated_data.get('kitchen', instance.kitchen)
+        instance.title = validated_data.get('title', instance.title)
+        instance.slug = validated_data.get('slug', instance.slug)
+        instance.level = validated_data.get('level', instance.level)
+        instance.no_preservatives = validated_data.get('no_preservatives', instance.no_preservatives)
+        instance.cooking_time = validated_data.get('cooking_time', instance.cooking_time)
+        instance.protein = validated_data.get('protein', instance.protein)
+        instance.fat = validated_data.get('fat', instance.fat)
+        instance.carbohydrates = validated_data.get('carbohydrates', instance.carbohydrates)
+        instance.kkal = validated_data.get('kkal', instance.kkal)
+        instance.description = validated_data.get('description', instance.description)
+        instance.image = validated_data.get('image', instance.image)
+        instance.price = validated_data.get('price', instance.price)
+        instance.portions = validated_data.get('portions', instance.portions)
+        instance.date_created = validated_data.get('date_created', instance.date_created)
+        instance.is_active = validated_data.get('is_active', instance.is_active)
+        if 'tags' in validated_data:
+            tags_data = validated_data.pop('tags')
+            for tag_data in tags_data:
+                tag = Tag.objects.get(name=tag_data)
+                instance.tags.add(tag)
+        instance.save()
+
+        return instance
 
 
 class ProductSerializer(serializers.ModelSerializer):
