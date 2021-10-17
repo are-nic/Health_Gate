@@ -13,10 +13,6 @@ urlpatterns = [
     path('api/token/verify/', TokenVerifyView.as_view()),
 ]
 
-#
-# if settings.DEBUG:      # если проект в режиме Дебаг, то директории для медиафайлов здесь
-#     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
