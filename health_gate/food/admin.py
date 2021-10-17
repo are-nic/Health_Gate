@@ -12,20 +12,23 @@ class KitchenAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}   # для автозаполнения поля slug у модели Kitchen
 
 
-class IngredientAdmin(admin.TabularInline):
+class IngredientAdmin(admin.TabularInline):     # для вложенных в экземпляр рецепта ингредиентов
     model = Ingredient
+
+
+class CookStepAdmin(admin.TabularInline):       # для вложенных в экземпляр рецепта шагов приготолвения
+    model = CookStep
 
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('title',)}  # для автозаполнения поля slug у модели Recipe
     filter_horizontal = ('tags',)               # выбор тэгов
-    inlines = [IngredientAdmin, ]
+    inlines = [IngredientAdmin, CookStepAdmin]
 
 
 admin.site.register(Tag)
 admin.site.register(Subtype)
 admin.site.register(Filter)
-admin.site.register(CookStep)
 admin.site.register(Comment)
 admin.site.register(Product)
