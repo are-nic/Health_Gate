@@ -23,7 +23,6 @@ class OrderViewSet(viewsets.ModelViewSet):
     Доступ: создание заказа для любого аутентифицированного юзера
             действия над заказами доступны для владельцев заказа или суперпользователю
     """
-    serializer_class = OrderSerializer
 
     def get_permissions(self):
         if self.action == 'create':
@@ -38,6 +37,16 @@ class OrderViewSet(viewsets.ModelViewSet):
         else:
             return Order.objects.filter(customer=self.request.user.id)
 
+    def get_serializer_class(self):
+        """выбор сериализатора в зависимости от применяемого метода"""
+        if self.action == 'list':
+            return OrderListSerializer
+        return OrderDetailSerializer
+
+    def perform_create(self, serializer):
+        """при создании заказа текущий юзер заносится в поле Customer"""
+        serializer.save(customer=self.request.user)
+
 
 class OrderRecipeViewSet(viewsets.ModelViewSet):
     """
@@ -48,37 +57,8 @@ class OrderRecipeViewSet(viewsets.ModelViewSet):
     serializer_class = OrderRecipeSerializer
 
     def get_queryset(self):
-        return OrderRecipe.objects.filter(order=self.kwargs['order_pk'])
+        return OrderRecipe.objects.filter(order=self.kwargs['orders_pk'])
 # ----------------------------------------------------------------------------------------------------------
-
-
-class OrderListView(generics.ListCreateAPIView):
-    """
-    вывод списка заказов и создание одного заказа
-    get, post
-    доступ: Суперпользователь и создатель заказа
-    """
-    queryset = Order.objects.order_by('customer')
-    serializer_class = OrderListSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        if self.request.user.is_superuser:
-            return Order.objects.all()
-        else:
-            return Order.objects.filter(customer=self.request.user.id)
-
-
-class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
-    """
-    Для чтения-записи-удаления конечных точек для экземпляра одного заказ
-    обработчик методов get, put, patch и delete
-    доступ:
-    """
-    queryset = Order.objects.all()
-    serializer_class = OrderDetailSerializer
-    permission_classes = [CustomerOrderOrReadOnly]
-
 
 class OrderRecipeView(viewsets.ModelViewSet):
     """
