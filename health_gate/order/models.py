@@ -53,7 +53,7 @@ class OrderRecipe(models.Model):
         return self.recipe.title
 
 
-class OrderProduct(models.Model):
+'''class OrderProduct(models.Model):
     """
     Модель Продукта в заказе
     """
@@ -71,7 +71,7 @@ class OrderProduct(models.Model):
         db_table = 'order_product'
 
     def __str__(self):
-        return self.product.name
+        return self.product.name'''
 
 
 class MealPlanRecipe(models.Model):
