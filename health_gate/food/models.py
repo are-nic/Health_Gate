@@ -8,32 +8,47 @@ from slugify import slugify
 User = settings.AUTH_USER_MODEL
 
 
+class CategoryProduct(models.Model):
+    """Категории продуктов"""
+    shop_id = models.PositiveIntegerField(primary_key=True, verbose_name='ID категории продукта в магазине', default=1)
+    shop = models.CharField(max_length=50, verbose_name='Магазин', null=True, blank=True)
+    name = models.CharField(max_length=50, verbose_name="Название категории")
+
+    class Meta:
+        ordering = ('name',)
+        verbose_name = 'Категория продукта'
+        verbose_name_plural = 'Категории продуктов'
+        db_table = 'category_product'
+
+    def __str__(self):
+        return self.name
+
+
 class Product(models.Model):
     """Продукт"""
 
-    CATEGORIES = [
-        ('MILK', 'Молочка'),
-        ('MEAT', 'Мясо'),
-        ('BREAD', 'Хлебные изделия'),
-        ('FRUIT', 'Фрукты'),
-        ('VEGETABLES', 'Овощи')
-    ]
-
     UNITS = [
-        ('LITER', 'л.'),
-        ('MILLI', 'мл.'),
-        ('GRAM', 'г.'),
-        ('KILO', 'кг.'),
-        ('PIECES', 'шт.')
+        ('л', 'л'),
+        ('мл', 'мл'),
+        ('г', 'г'),
+        ('кг', 'кг'),
+        ('шт', 'шт')
     ]
 
-    category = models.CharField(max_length=10, choices=CATEGORIES, verbose_name='Категория', null=True, blank=True)
+    shop = models.CharField(max_length=50, verbose_name='Магазин', null=True, blank=True)
+    category = models.ForeignKey(CategoryProduct, verbose_name='Категория', on_delete=models.CASCADE,
+                                 db_constraint=False, null=True, blank=True)
+    shop_id = models.PositiveIntegerField(verbose_name='ID продукта в магазине', null=True, blank=True)
     name = models.CharField(max_length=300, verbose_name='Наименование')
-    qty_per_item = models.PositiveIntegerField(verbose_name='Кол-во на ед. продукта', null=True, blank=True)
+    qty_per_item = models.FloatField(verbose_name='Кол-во на ед. продукта', null=True, blank=True)
     unit = models.CharField(max_length=10, choices=UNITS, verbose_name='Ед. измерения', null=True, blank=True)
-    # image = models.ImageField(upload_to='products/%Y/%m/%d', blank=True, verbose_name='Фото')
+    # image = models.ImageField(upload_to='products', verbose_name='Фото', null=True, blank=True)
+    picture = models.URLField(verbose_name='Фото', null=True, blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Цена', default=0.00)
-    stock = models.PositiveIntegerField(verbose_name='Остаток ед. продукта', default=1)
+    proteins = models.FloatField(verbose_name='Белки', null=True, blank=True)
+    fats = models.FloatField(verbose_name='Жиры', null=True, blank=True)
+    carbohydrates = models.FloatField(verbose_name='Углеводы', null=True, blank=True)
+    calories = models.FloatField(verbose_name='Калории', null=True, blank=True)
     available = models.BooleanField(default=True, verbose_name='В наличии')
     added = models.DateTimeField(auto_now_add=True, verbose_name='Добавлен')
     updated = models.DateTimeField(auto_now=True, verbose_name='Обновлен')
@@ -57,8 +72,8 @@ class Category(models.Model):
 
     class Meta:
         ordering = ('name',)
-        verbose_name = 'Категория'
-        verbose_name_plural = 'Категории'
+        verbose_name = 'Категория рецептов'
+        verbose_name_plural = 'Категории рецептов'
         db_table = 'category_recipe'
 
     def __str__(self):
@@ -123,7 +138,7 @@ class Tag(models.Model):
     name = models.CharField(max_length=100, verbose_name='Тэг', unique=True)
 
     class Meta:
-        ordering = ('name',)
+        ordering = ('subtype',)
         verbose_name = 'Тэг'
         verbose_name_plural = 'Тэги'
         db_table = 'tags'
@@ -155,7 +170,7 @@ class Recipe(models.Model):
     carbohydrates = models.IntegerField(verbose_name='Углеводы', null=True)
     kkal = models.IntegerField(verbose_name='Калории', null=True)
     description = models.TextField(verbose_name='Описание')
-    image = models.ImageField(verbose_name='Фото блюда', blank=True, null=True, upload_to='recipes')
+    image = models.ImageField(verbose_name='Фото блюда', upload_to='recipes', blank=True, null=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Цена',
                                 default=0.00, validators=[MinValueValidator(Decimal('0.00'))])
     portions = models.PositiveIntegerField(verbose_name='Кол-во порций', default=1)
@@ -181,16 +196,16 @@ class Recipe(models.Model):
 
 class Ingredient(models.Model):
     """
-    экземпляр ингридиента, который принадлежит к конкретному рецепту в определенном кол-ве.
+    Экземпляр ингридиента, который принадлежит к конкретному рецепту в определенном кол-ве.
     для получения всех ингридиентов по какому либо рецепту использовать: recipe.ingredients.all()
     """
 
     UNITS = [
-        ('л.', 'л.'),
-        ('мл.', 'мл.'),
-        ('г.', 'г.'),
-        ('кг.', 'кг.'),
-        ('шт.', 'шт.'),
+        ('л', 'л'),
+        ('мл', 'мл'),
+        ('г', 'г'),
+        ('кг', 'кг'),
+        ('шт', 'шт'),
         ('по вкусу', 'по вкусу'),
         ('ч. ложка', 'ч. ложка'),
         ('ст. ложка', 'ст. ложка'),
@@ -198,19 +213,19 @@ class Ingredient(models.Model):
     ]
 
     recipe = models.ForeignKey(Recipe, verbose_name='Рецепт', on_delete=models.CASCADE, related_name='ingredients')
-    id_product = models.PositiveIntegerField(verbose_name='id продукта', null=True, blank=True)
-    name = models.CharField(max_length=200, verbose_name='Имя ингредиента')
+    product = models.ForeignKey(Product, verbose_name='Продукт', on_delete=models.SET_NULL, null=True, blank=True)
+    # name = models.CharField(max_length=200, verbose_name='Имя ингредиента')
     qty = models.PositiveIntegerField(verbose_name='Кол-во')
     unit = models.CharField(max_length=20, choices=UNITS, verbose_name='Ед. измерения')
 
     class Meta:
-        ordering = ('name',)
+        ordering = ('recipe',)
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
         db_table = 'Ingredient'
 
     def __str__(self):
-        return self.name
+        return self.product.name
 
 
 class CookStep(models.Model):
