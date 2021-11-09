@@ -32,6 +32,14 @@ class CustomUserAdmin(DjangoUserAdmin):
             'fields': ('phone_number', 'password1', 'password2'),
         }),
     )
-    list_display = ('phone_number', 'full_name', 'is_staff', 'is_active')
+    list_filter = DjangoUserAdmin.list_filter + ('groups__name',)
+    list_display = ('phone_number', 'full_name', 'custom_group', 'is_staff', 'is_active')
     search_fields = ('phone_number',)
     ordering = ('phone_number',)
+
+    def custom_group(self, obj):
+        """
+        получить группы, разделенные запятой и вывести пустую строку если пользователь не имеет группу.
+        для вывода групп пользователей в списке пользователей админ панели
+        """
+        return ','.join([group.name for group in obj.groups.all()]) if obj.groups.count() else ''
