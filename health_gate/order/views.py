@@ -1,13 +1,14 @@
 from rest_framework import viewsets, generics
 
-from .models import Order, OrderRecipe, OrderProduct, MealPlanRecipe
-from .serializers import (OrderSerializer,
-                          OrderListSerializer,
+from .models import Order, OrderRecipe, MealPlanRecipe
+
+from .serializers import (OrderListSerializer,
                           OrderDetailSerializer,
                           OrderRecipeSerializer,
-                          OrderRecipeDetailSerializer,
-                          OrderProductSerializer,
+                          # OrderRecipeDetailSerializer,
+                          # OrderProductSerializer,
                           MealPlanRecipeSerializer)
+
 from api.permissions import CustomerOrderOrReadOnly
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticated
@@ -46,6 +47,13 @@ class OrderViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         """при создании заказа текущий юзер заносится в поле Customer"""
         serializer.save(customer=self.request.user)
+        if self.request.data('phone_number') == '':
+            serializer.save(phone_number=self.request.user.phone_number)
+
+        recipes_data = self.request.data.pop('recipes')             # забираем из передаваемых данных список рецептов
+        order = list(Order.objects.all())[-1]                       # присваиваем переменной только что созданный заказ
+        for recipe_data in recipes_data:                            # перебор всех переданных в заказ рецептов
+            OrderRecipe.objects.create(order=order, **recipe_data)  # создание рецепта заказа и привязка его к заказу
 
 
 class OrderRecipeViewSet(viewsets.ModelViewSet):
@@ -60,28 +68,25 @@ class OrderRecipeViewSet(viewsets.ModelViewSet):
         return OrderRecipe.objects.filter(order=self.kwargs['orders_pk'])
 # ----------------------------------------------------------------------------------------------------------
 
+
 class OrderRecipeView(viewsets.ModelViewSet):
     """
     Конечная точка API, позволяющая просматривать, создавать или редактировать рецепты заказа.
     get, post, put, patch, delete
     сортировка по заказам
-    доступ: Ко всем рецептам заказов всех пользователей для суперюзера
-            К рецептам заказов конкретного юзера для текущего пользователя
+    доступ: Ко всем рецептам заказов в БД имеет доступ Суперпользователь
+            Любой пользователь имеет доступ к своим рецептам заказа.
     """
     queryset = OrderRecipe.objects.order_by('order')
+    serializer_class = OrderRecipeSerializer
 
     def get_queryset(self):
         if self.request.user.is_superuser:
             return self.queryset
         return self.queryset.filter(order__customer=self.request.user)
 
-    def get_serializer_class(self):
-        """выбор сериализатора в зависимости от применяемого метода"""
-        if self.action == 'list':
-            return OrderRecipeSerializer
-        return OrderRecipeDetailSerializer
 
-
+'''
 class OrderProductView(viewsets.ModelViewSet):
     """
     Конечная точка API, позволяющая просматривать, создавать или редактировать продукты заказа.
@@ -96,6 +101,7 @@ class OrderProductView(viewsets.ModelViewSet):
         if self.request.user.is_superuser:
             return self.queryset
         return self.queryset.filter(order__customer=self.request.user)
+'''
 
 
 class MealPlanRecipeView(viewsets.ModelViewSet):
