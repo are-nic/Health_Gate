@@ -47,9 +47,7 @@ class RecipeOwner(permissions.BasePermission):
         return False
 
     def has_object_permission(self, request, view, obj):
-        if obj.owner == request.user and request.user.groups.filter(name='bloger').exists():
-            return True
-        elif request.user.is_superuser:
+        if request.user.is_superuser or obj.owner == request.user and request.user.groups.filter(name='bloger').exists():
             return True
         return False
 
