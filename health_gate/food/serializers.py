@@ -31,11 +31,12 @@ class IngredientSerializer(serializers.ModelSerializer):
     Ингредиент
     """
     recipe = serializers.SlugRelatedField(slug_field='title', queryset=Recipe.objects.all())
+    product = serializers.SlugRelatedField(slug_field='name', queryset=Product.objects.all())
     unit = serializers.ChoiceField(choices=Ingredient.UNITS)
 
     class Meta:
         model = Ingredient
-        fields = ['id', 'recipe', 'name', 'qty', 'unit', 'id_product']
+        fields = ['id', 'recipe', 'product', 'qty', 'unit']
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -100,10 +101,9 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
             ingredients = list(ingredients)
             for ingredient_data in ingredients_data:
                 ingredient = ingredients.pop(0)
-                ingredient.name = ingredient_data.get('name', ingredient.name)
+                ingredient.product = ingredient_data.get('product', ingredient.product)
                 ingredient.qty = ingredient_data.get('qty', ingredient.qty)
                 ingredient.unit = ingredient_data.get('unit', ingredient.unit)
-                ingredient.id_product = ingredient_data.get('id_product', ingredient.id_product)
                 ingredient.save()
 
         if 'steps' in validated_data:
@@ -149,3 +149,11 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = "__all__"
+
+
+class TagSerializer(serializers.ModelSerializer):
+    """Тэги"""
+
+    class Meta:
+        model = Tag
+        fields = '__all__'
