@@ -7,12 +7,13 @@ from food.views import (RecommendRecipesListView,
                         CommentView,
                         ProductView,
                         CookStepView,
-                        RecipeViewSet)
+                        RecipeViewSet,
+                        TagViewSet)
 
 from order.views import (OrderViewSet,
                          OrderRecipeViewSet,
                          OrderRecipeView,
-                         OrderProductView,
+                         # OrderProductView,
                          MealPlanRecipeView)
 
 from user.views import UserView
@@ -38,7 +39,7 @@ users_router = routers.NestedSimpleRouter(router, 'users', lookup='users')
 users_router.register('user-orders', OrderViewSet, basename='user-orders')
 
 router.register('order-recipes', OrderRecipeView)
-router.register('order-products', OrderProductView)
+# router.register('order-products', OrderProductView)
 
 router.register('products', ProductView)
 router.register('recipes', RecipeViewSet)
@@ -47,6 +48,8 @@ router.register('ingredients', IngredientView, basename='ingredients')
 router.register('comments', CommentView)
 
 router.register('meal-plan', MealPlanRecipeView)
+
+router.register('tags', TagViewSet)
 
 urlpatterns = [
     path('recipes-recommend', RecommendRecipesListView.as_view()),
