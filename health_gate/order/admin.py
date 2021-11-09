@@ -2,9 +2,9 @@ from django.contrib import admin
 from .models import *
 
 
-class OrderProductInline(admin.TabularInline):
-    model = OrderProduct
-    raw_id_fields = ['recipe']
+# class OrderProductInline(admin.TabularInline):
+#     model = OrderProduct
+#     raw_id_fields = ['recipe']
 
 
 class OrderRecipeInline(admin.TabularInline):
@@ -15,7 +15,7 @@ class OrderRecipeInline(admin.TabularInline):
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     list_display = ['id', 'customer', 'created_at', 'updated_at', 'paid']
-    inlines = [OrderRecipeInline, OrderProductInline,]
+    inlines = [OrderRecipeInline]
 
 
 @admin.register(MealPlanRecipe)
