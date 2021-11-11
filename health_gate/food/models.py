@@ -10,7 +10,7 @@ User = settings.AUTH_USER_MODEL
 
 class CategoryProduct(models.Model):
     """Категории продуктов"""
-    shop_id = models.PositiveIntegerField(primary_key=True, verbose_name='ID категории продукта в магазине', default=1)
+
     shop = models.CharField(max_length=50, verbose_name='Магазин', null=True, blank=True)
     name = models.CharField(max_length=50, verbose_name="Название категории")
 
