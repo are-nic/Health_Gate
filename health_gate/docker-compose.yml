@@ -3,7 +3,7 @@ version: '3.7'
 services:
   web:
     build: .
-    command:  sh -c "gunicorn health_gate.wsgi:application --bind 0.0.0.0:8000 --reload -w 4"
+    command:  sh -c "python manage.py makemigrations && python manage.py migrate && gunicorn health_gate.wsgi:application --bind 0.0.0.0:8000 --reload -w 4"
     volumes:
       - ./:/usr/src/app/
       - static_volume:/usr/src/app/static
