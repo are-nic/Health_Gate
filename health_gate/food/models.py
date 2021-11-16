@@ -117,7 +117,8 @@ class Subtype(models.Model):
     """
     Модель подтипов предпочтений (тегов) (в соответствии с дизайном: Короновирус, Старение, Здоровье мозга и т.д.)
     """
-    filter = models.ForeignKey(Filter, verbose_name='Основные фильтры предпочтений', on_delete=models.CASCADE)
+    filter = models.ForeignKey(Filter, verbose_name='Основные фильтры предпочтений', on_delete=models.CASCADE,
+                               related_name='subtypes')
     title = models.CharField(max_length=100, verbose_name='Заголовок подтипа')
 
     class Meta:
@@ -134,7 +135,8 @@ class Tag(models.Model):
     """
     Тэги
     """
-    subtype = models.ForeignKey(Subtype, verbose_name='Подтип предпочтений/тегов', on_delete=models.CASCADE)
+    subtype = models.ForeignKey(Subtype, verbose_name='Подтип предпочтений/тегов', on_delete=models.CASCADE,
+                                related_name='tags')
     name = models.CharField(max_length=100, verbose_name='Тэг', unique=True)
 
     class Meta:
