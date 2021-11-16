@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Recipe, Ingredient, Comment, Product, CookStep, Category, Kitchen, Tag
+from .models import Recipe, Ingredient, Comment, Product, CookStep, Category, Kitchen, Tag, Subtype, Filter
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -153,7 +153,28 @@ class ProductSerializer(serializers.ModelSerializer):
 
 class TagSerializer(serializers.ModelSerializer):
     """Тэги"""
+    # subtype = serializers.SlugRelatedField(slug_field='title', queryset=Subtype.objects.all())
 
     class Meta:
         model = Tag
-        fields = '__all__'
+        fields = ('name',)
+
+
+class SubtypeSerializer(serializers.ModelSerializer):
+    """Подтипы тегов"""
+
+    # filter = serializers.SlugRelatedField(slug_field='title', queryset=Filter.objects.all())
+    tags = TagSerializer(many=True)
+
+    class Meta:
+        model = Subtype
+        fields = ('title', 'tags')
+
+
+class FilterSerializer(serializers.ModelSerializer):
+    """Основные фильтры"""
+    subtypes = SubtypeSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Filter
+        fields = ('title', 'subtypes')
