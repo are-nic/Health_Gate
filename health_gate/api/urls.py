@@ -8,7 +8,8 @@ from food.views import (RecommendRecipesListView,
                         ProductView,
                         CookStepView,
                         RecipeViewSet,
-                        TagViewSet)
+                        TagViewSet,
+                        FilterView)
 
 from order.views import (OrderViewSet,
                          OrderRecipeViewSet,
@@ -53,6 +54,7 @@ router.register('tags', TagViewSet)
 
 urlpatterns = [
     path('recipes-recommend', RecommendRecipesListView.as_view()),
+    path('filters', FilterView.as_view()),
 ]
 urlpatterns += router.urls
 urlpatterns += orders_router.urls
