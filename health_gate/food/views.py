@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from .models import Recipe, Comment, Ingredient, Product, CookStep, Tag
+from .models import Recipe, Comment, Ingredient, Product, CookStep, Tag, Filter
 from rest_framework import viewsets, generics, status
 from api.permissions import AuthorComment, RecipeOwner, IsOwnerRecipeIngredients, IsSuperUser
 
@@ -11,7 +11,8 @@ from .serializers import (RecipeListSerializer,
                           CommentSerializer,
                           ProductSerializer,
                           CookStepSerializer,
-                          TagSerializer)
+                          TagSerializer,
+                          FilterSerializer)
 
 User = get_user_model()
 
@@ -192,3 +193,15 @@ class TagViewSet(viewsets.ModelViewSet):
         else:
             permission_classes = [IsSuperUser]
         return [permission() for permission in permission_classes]
+
+
+class FilterView(generics.ListAPIView):
+    """
+    Просмотр вложенных тегов, подтипов тегов и их фильтров.
+    Доступы: просмотр доступен авторизованному пальзователю.
+    """
+    serializer_class = FilterSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Filter.objects.all()
