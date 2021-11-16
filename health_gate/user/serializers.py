@@ -32,6 +32,8 @@ class UserSerializer(serializers.ModelSerializer):
         """
         validated_data['password'] = make_password(validated_data['password'])
         validated_data['is_active'] = True
+        if str(validated_data['groups'][0]) == 'bloger':
+            validated_data['is_active'] = False
         return super(UserSerializer, self).create(validated_data)
 
     class Meta:
