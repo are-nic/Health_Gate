@@ -7,11 +7,18 @@ from food.models import Tag
 
 class CustomUser(AbstractUser):
     """Кастомная модель Пользователя"""
+    PROF = [
+        ('блогер', 'блогер'),
+        ('диетолог', 'диетолог'),
+        ('врач', 'врач')
+    ]
+
     username = None
     phone_number = models.CharField(max_length=12, verbose_name='Номер телефона', unique=True)
     email = models.EmailField(_('email'), blank=True)
     nickname = models.CharField(max_length=50, verbose_name='Никнейм', blank=True)
     full_name = models.CharField(max_length=100, verbose_name='Полное имя', blank=True)
+    profession = models.CharField(max_length=8, choices=PROF, verbose_name='Профессия', blank=True)
     address = models.CharField(max_length=255, verbose_name='Адрес доставки', blank=True)
     about = models.TextField(max_length=300, verbose_name='О Себе', blank=True)
     photo = models.ImageField(verbose_name='Фото профиля', blank=True, null=True, upload_to='profile_photo')

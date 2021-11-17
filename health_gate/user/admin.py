@@ -13,6 +13,7 @@ class CustomUserAdmin(DjangoUserAdmin):
         (_('Personal info'), {'fields': ('full_name',
                                          'nickname',
                                          'email',
+                                         'profession',
                                          'address',
                                          'about',
                                          'photo',
