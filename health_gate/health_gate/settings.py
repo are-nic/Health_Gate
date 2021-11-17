@@ -19,6 +19,7 @@ ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "127.0.0.1").split(" ")
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',
     'user',
     'order',
     'food',
@@ -44,6 +45,19 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
+]
+
+CORS_ALLOWED_ORIGINS = [
+    "https://c-eda.ru",
+    "https://hl.c-eda.ru",
+    "http://c-eda.ru",
+    "http://hl.c-eda.ru",
+    "https://healthgate.club",
+    "http://healthgate.club",
+    "http://localhost:8080",
+    "http://127.0.0.1:9000",
 ]
 
 ROOT_URLCONF = 'health_gate.urls'
