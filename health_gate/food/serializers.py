@@ -62,9 +62,16 @@ class CookStepSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class UserForRecipeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['phone_number', 'full_name', 'profession', 'photo']
+
+
 class RecipeListSerializer(serializers.ModelSerializer):
     """Список рецептов"""
-    owner = serializers.ReadOnlyField(source='owner.phone_number')
+    # owner = serializers.ReadOnlyField(source='owner.phone_number')
+    owner = UserForRecipeSerializer()
     category = serializers.SlugRelatedField(slug_field='name', queryset=Category.objects.all())
     kitchen = serializers.SlugRelatedField(slug_field='name', queryset=Kitchen.objects.all())
     level = ChoiceField(choices=Recipe.LEVEL)
@@ -72,13 +79,14 @@ class RecipeListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        #fields = '__all__'
+        # fields = '__all__'
         exclude = ['is_active', 'date_created']
 
 
 class RecipeDetailSerializer(serializers.ModelSerializer):
     """Один рецепт"""
-    owner = serializers.ReadOnlyField(source='owner.phone_number')
+    # owner = serializers.ReadOnlyField(source='owner.phone_number')
+    owner = UserForRecipeSerializer()
     category = serializers.SlugRelatedField(slug_field='name', queryset=Category.objects.all())
     kitchen = serializers.SlugRelatedField(slug_field='name', queryset=Kitchen.objects.all())
     ingredients = IngredientSerializer(many=True)
@@ -153,7 +161,6 @@ class ProductSerializer(serializers.ModelSerializer):
 
 class TagSerializer(serializers.ModelSerializer):
     """Тэги"""
-    # subtype = serializers.SlugRelatedField(slug_field='title', queryset=Subtype.objects.all())
 
     class Meta:
         model = Tag
@@ -163,7 +170,6 @@ class TagSerializer(serializers.ModelSerializer):
 class SubtypeSerializer(serializers.ModelSerializer):
     """Подтипы тегов"""
 
-    # filter = serializers.SlugRelatedField(slug_field='title', queryset=Filter.objects.all())
     tags = TagSerializer(many=True)
 
     class Meta:
