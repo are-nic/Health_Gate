@@ -7,6 +7,7 @@ from api.permissions import AuthorComment, RecipeOwner, IsOwnerRecipeIngredients
 
 from .serializers import (RecipeListSerializer,
                           RecipeDetailSerializer,
+                          RecipeCreateSerializer,
                           IngredientSerializer,
                           CommentSerializer,
                           ProductSerializer,
@@ -51,8 +52,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         """выбор сериализатора в зависимости от применяемого метода"""
-        if self.action == 'list' or self.action == 'create':
+        if self.action == 'list':
             return RecipeListSerializer
+        elif self.action == 'create':
+            return RecipeCreateSerializer
         return RecipeDetailSerializer
 
     def create(self, request, *args, **kwargs):
@@ -198,10 +201,10 @@ class TagViewSet(viewsets.ModelViewSet):
 class FilterView(generics.ListAPIView):
     """
     Просмотр вложенных тегов, подтипов тегов и их фильтров.
-    Доступы: просмотр доступен авторизованному пальзователю.
+    Доступы: просмотр доступен всем.
     """
     serializer_class = FilterSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         return Filter.objects.all()
