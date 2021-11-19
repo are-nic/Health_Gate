@@ -1,5 +1,5 @@
 from decimal import Decimal
-
+from .logic import get_media_extension
 from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
@@ -159,6 +159,11 @@ class Recipe(models.Model):
         ('EASY', 'легко'),
     ]
 
+    EXTENSION = [
+        ('PHOTO', 'photo'),
+        ('VIDEO', 'video')
+    ]
+
     owner = models.ForeignKey(User, verbose_name='Автор рецепта', on_delete=models.CASCADE)
     category = models.ForeignKey(Category, verbose_name='Категория', on_delete=models.SET_NULL, null=True, blank=True)
     kitchen = models.ForeignKey(Kitchen, verbose_name='Тип кухни', on_delete=models.SET_NULL, null=True, blank=True)
@@ -172,7 +177,9 @@ class Recipe(models.Model):
     carbohydrates = models.IntegerField(verbose_name='Углеводы', null=True)
     kkal = models.IntegerField(verbose_name='Калории', null=True)
     description = models.TextField(verbose_name='Описание')
-    image = models.ImageField(verbose_name='Фото блюда', upload_to='recipes', blank=True, null=True)
+    media = models.FileField(verbose_name='Фото/Видео', upload_to='recipes', blank=True, null=True)
+    media_extension = models.CharField(max_length=5, choices=EXTENSION, verbose_name='Расширение файла media',
+                                       null=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Цена',
                                 default=0.00, validators=[MinValueValidator(Decimal('0.00'))])
     portions = models.PositiveIntegerField(verbose_name='Кол-во порций', default=1)
@@ -191,8 +198,12 @@ class Recipe(models.Model):
     def save(self, *args, **kwargs):
         """
         для автоматического заполнения поля slug при создании рецепта
+        для заполнения поля media_extension в зависимости от значения поля media
         """
         self.slug = slugify(self.title)
+
+        self.media_extension = get_media_extension(self.media)
+
         return super(Recipe, self).save(*args, **kwargs)
 
 
