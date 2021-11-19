@@ -70,7 +70,6 @@ class UserForRecipeSerializer(serializers.ModelSerializer):
 
 class RecipeListSerializer(serializers.ModelSerializer):
     """Список рецептов"""
-    # owner = serializers.ReadOnlyField(source='owner.phone_number')
     owner = UserForRecipeSerializer()
     category = serializers.SlugRelatedField(slug_field='name', queryset=Category.objects.all())
     kitchen = serializers.SlugRelatedField(slug_field='name', queryset=Kitchen.objects.all())
@@ -79,14 +78,25 @@ class RecipeListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        # fields = '__all__'
+        exclude = ['is_active', 'date_created']
+
+
+class RecipeCreateSerializer(serializers.ModelSerializer):
+    """сериализатор для создания рецепта"""
+    owner = serializers.ReadOnlyField(source='owner.phone_number')
+    category = serializers.SlugRelatedField(slug_field='name', queryset=Category.objects.all())
+    kitchen = serializers.SlugRelatedField(slug_field='name', queryset=Kitchen.objects.all())
+    level = ChoiceField(choices=Recipe.LEVEL)
+    tags = serializers.SlugRelatedField(many=True, slug_field='name', queryset=Tag.objects.all())
+
+    class Meta:
+        model = Recipe
         exclude = ['is_active', 'date_created']
 
 
 class RecipeDetailSerializer(serializers.ModelSerializer):
     """Один рецепт"""
-    # owner = serializers.ReadOnlyField(source='owner.phone_number')
-    owner = UserForRecipeSerializer()
+    owner = serializers.ReadOnlyField(source='owner.phone_number')
     category = serializers.SlugRelatedField(slug_field='name', queryset=Category.objects.all())
     kitchen = serializers.SlugRelatedField(slug_field='name', queryset=Kitchen.objects.all())
     ingredients = IngredientSerializer(many=True)
@@ -137,7 +147,7 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
         instance.carbohydrates = validated_data.get('carbohydrates', instance.carbohydrates)
         instance.kkal = validated_data.get('kkal', instance.kkal)
         instance.description = validated_data.get('description', instance.description)
-        instance.image = validated_data.get('image', instance.image)
+        instance.media = validated_data.get('media', instance.media)
         instance.price = validated_data.get('price', instance.price)
         instance.portions = validated_data.get('portions', instance.portions)
         instance.date_created = validated_data.get('date_created', instance.date_created)
