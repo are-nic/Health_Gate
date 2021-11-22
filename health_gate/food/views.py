@@ -7,6 +7,7 @@ from api.permissions import AuthorComment, RecipeOwner, IsOwnerRecipeIngredients
 
 from .serializers import (RecipeListSerializer,
                           RecipeDetailSerializer,
+                          RecipeSerializer,
                           RecipeCreateSerializer,
                           IngredientSerializer,
                           CommentSerializer,
@@ -54,9 +55,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """выбор сериализатора в зависимости от применяемого метода"""
         if self.action == 'list':
             return RecipeListSerializer
+        elif self.action == 'retrieve':
+            return RecipeDetailSerializer
         elif self.action == 'create':
             return RecipeCreateSerializer
-        return RecipeDetailSerializer
+        return RecipeSerializer
 
     def create(self, request, *args, **kwargs):
         """переопределение метода для предоставления права создания рецепта только пользователям из группы "bloger" """
