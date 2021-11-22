@@ -76,3 +76,20 @@ class IsSuperUser(permissions.BasePermission):
         if request.user.is_superuser:
             return True
         return False
+
+
+class IsAccountOwner(permissions.BasePermission):
+    """
+    Кастомное разрешение для действий над аккаунтами
+    Чтение аккаунтов доступно любому авторизованному юзеру
+    Действия над аккаунтами доступны владельцам аккаунтов и суперпользователю
+    """
+    def has_permission(self, request, view):
+        if request.user.is_authenticated:
+            return True
+        return False
+
+    def has_object_permission(self, request, view, obj):
+        if request.user.is_superuser or obj.id == request.user.id:
+            return True
+        return False
