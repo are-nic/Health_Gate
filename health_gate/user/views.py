@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
 from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
 from .serializers import UserSerializer
+from api.permissions import IsAccountOwner
 
 
 User = get_user_model()
@@ -10,28 +12,25 @@ class UserView(viewsets.ModelViewSet):
     """
     Просмотр, создание, редактирование, удаление аккаунтов.
     get, post, put, patch, delete
-    Неаутентифицированные пользователи могут отправить GET-запрос для получения списка пользователей,
-    но он будет пустым, потому что возвращаемый User.objects.filter (id = self.request.user.id) гарантирует,
-    что будет возвращена только информация об аутентифицированном пользователе.
 
-    То же самое относится и к другим методам: если аутентифицированный пользователь пытается УДАЛИТЬ
-    другой пользовательский объект, будет возвращено: "Не найдено" (поскольку пользователь, к которому он пытается
-    получить доступ, отсутствует в наборе запросов).
-
-    Прошедшие проверку пользователи могут совершать действия над своими аккаунтами.
+    Доступы: Создать аккаунт могут любые пользовтели
+            Получить информацию об аккаунтах могу любые авторизованные юзеры
+            Изменять, удалять аккаунты могут владельцы аккаунтов и суперпользователь
     """
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
-    def get_queryset(self):
+    def get_permissions(self):
         """
-        Если пользователь - Суперпользователь, то он может читать и совершать действия над аккаунтами.
-        Любой другой юзер может видеть свой аккаунт и производить над ним действия.
+        Просмотр аккаунтов доступен любому авторизованному пользователю
+        Какие-либо дейсвтия над аккаунтами доступны владельцам аккаунтов и суперпользователю
+        :return: список разрешений
         """
-        if self.request.user.is_superuser:
-            return User.objects.all()
+        if self.request.method == 'GET':
+            permission_classes = [IsAuthenticated]
         else:
-            return User.objects.filter(id=self.request.user.id)
+            permission_classes = [IsAccountOwner]
+        return [permission() for permission in permission_classes]
 
     '''def destroy(self, request, pk=None, **kwargs):
         """
