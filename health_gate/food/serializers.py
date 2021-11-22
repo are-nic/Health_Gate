@@ -65,11 +65,12 @@ class CookStepSerializer(serializers.ModelSerializer):
 class UserForRecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['phone_number', 'full_name', 'profession', 'photo']
+        fields = ['id', 'phone_number', 'full_name', 'profession', 'photo']
 
 
+# ----------------------------------------------------Recipes Only-------------------------------------------------
 class RecipeListSerializer(serializers.ModelSerializer):
-    """Список рецептов"""
+    """Вывод списока рецептов"""
     owner = UserForRecipeSerializer()
     category = serializers.SlugRelatedField(slug_field='name', queryset=Category.objects.all())
     kitchen = serializers.SlugRelatedField(slug_field='name', queryset=Kitchen.objects.all())
@@ -82,7 +83,7 @@ class RecipeListSerializer(serializers.ModelSerializer):
 
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
-    """сериализатор для создания рецепта"""
+    """для создания рецепта"""
     owner = serializers.ReadOnlyField(source='owner.phone_number')
     category = serializers.SlugRelatedField(slug_field='name', queryset=Category.objects.all())
     kitchen = serializers.SlugRelatedField(slug_field='name', queryset=Kitchen.objects.all())
@@ -95,7 +96,23 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
 
 class RecipeDetailSerializer(serializers.ModelSerializer):
-    """Один рецепт"""
+    """вывод одного рецепта"""
+    owner = UserForRecipeSerializer()
+    category = serializers.SlugRelatedField(slug_field='name', queryset=Category.objects.all())
+    kitchen = serializers.SlugRelatedField(slug_field='name', queryset=Kitchen.objects.all())
+    ingredients = IngredientSerializer(many=True)
+    level = ChoiceField(choices=Recipe.LEVEL)
+    steps = CookStepSerializer(many=True)
+    tags = serializers.SlugRelatedField(many=True, slug_field='name', queryset=Tag.objects.all())
+    comments = CommentSerializer(many=True)
+
+    class Meta:
+        model = Recipe
+        fields = '__all__'
+
+
+class RecipeSerializer(serializers.ModelSerializer):
+    """для обновления рецепта"""
     owner = serializers.ReadOnlyField(source='owner.phone_number')
     category = serializers.SlugRelatedField(slug_field='name', queryset=Category.objects.all())
     kitchen = serializers.SlugRelatedField(slug_field='name', queryset=Kitchen.objects.all())
@@ -160,6 +177,7 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
+# --------------------------------------------------------------------------------------------------------------------
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -184,7 +202,7 @@ class SubtypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Subtype
-        fields = ('title', 'tags')
+        fields = ('title', 'icon', 'tags')
 
 
 class FilterSerializer(serializers.ModelSerializer):
