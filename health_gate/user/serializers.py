@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Group
 from rest_framework import serializers
+from food.serializers import RecipeListSerializer
 
 from food.models import Tag
 
@@ -9,6 +10,8 @@ User = get_user_model()
 
 
 class GroupSerializer(serializers.ModelSerializer):
+    """Для Группы Пользователя"""
+
     class Meta:
         model = Group
         fields = ['name']
@@ -19,6 +22,7 @@ class UserSerializer(serializers.ModelSerializer):
     При регистрации пользователя запрашивается доп поле с указанием группы: 'bloger' или 'customer'
     Так же в параметрах можно указать имеющиеся в БД теги.
     """
+    recipes = RecipeListSerializer(many=True, required=False)
     groups = serializers.SlugRelatedField(many=True, slug_field='name', queryset=Group.objects.all(),
                                           required=True,
                                           allow_null=False,
