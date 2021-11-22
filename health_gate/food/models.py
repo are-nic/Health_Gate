@@ -120,6 +120,7 @@ class Subtype(models.Model):
     filter = models.ForeignKey(Filter, verbose_name='Основные фильтры предпочтений', on_delete=models.CASCADE,
                                related_name='subtypes')
     title = models.CharField(max_length=100, verbose_name='Заголовок подтипа')
+    icon = models.ImageField(verbose_name='Иконка подтипа', upload_to='tags', blank=True, null=True)
 
     class Meta:
         ordering = ('title',)
@@ -164,7 +165,7 @@ class Recipe(models.Model):
         ('VIDEO', 'video')
     ]
 
-    owner = models.ForeignKey(User, verbose_name='Автор рецепта', on_delete=models.CASCADE)
+    owner = models.ForeignKey(User, verbose_name='Автор рецепта', on_delete=models.CASCADE, related_name='recipes')
     category = models.ForeignKey(Category, verbose_name='Категория', on_delete=models.SET_NULL, null=True, blank=True)
     kitchen = models.ForeignKey(Kitchen, verbose_name='Тип кухни', on_delete=models.SET_NULL, null=True, blank=True)
     title = models.CharField(max_length=255, verbose_name='Название рецепта')
