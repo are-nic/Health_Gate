@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from .serializers import UserSerializer
 from api.permissions import IsAccountOwner
 
@@ -26,7 +26,9 @@ class UserView(viewsets.ModelViewSet):
         Какие-либо дейсвтия над аккаунтами доступны владельцам аккаунтов и суперпользователю
         :return: список разрешений
         """
-        if self.request.method == 'GET':
+        if self.request.method == 'POST':
+            permission_classes = [AllowAny]
+        elif self.request.method == 'GET':
             permission_classes = [IsAuthenticated]
         else:
             permission_classes = [IsAccountOwner]
