@@ -1,11 +1,25 @@
 from django.contrib.auth import get_user_model
-from rest_framework import viewsets
+from rest_framework import viewsets, generics
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .serializers import UserSerializer
 from api.permissions import IsAccountOwner
 
 
 User = get_user_model()
+
+
+class CurrentUserView(generics.ListAPIView):
+    """
+    Вывод списка текущего Пользовтеля
+    """
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    def get_queryset(self):
+        """
+        Любой юзер может видеть свой аккаунт и производить над ним действия.
+        """
+        return User.objects.filter(id=self.request.user.id)
 
 
 class UserView(viewsets.ModelViewSet):
