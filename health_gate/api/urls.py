@@ -17,7 +17,7 @@ from order.views import (OrderViewSet,
                          # OrderProductView,
                          MealPlanRecipeView)
 
-from user.views import UserView
+from user.views import UserView, CurrentUserView
 
 router = SimpleRouter(trailing_slash=False)
 
@@ -55,6 +55,7 @@ router.register('tags', TagViewSet)
 urlpatterns = [
     path('recipes-recommend', RecommendRecipesListView.as_view()),
     path('filters', FilterView.as_view()),
+    path('current-user', CurrentUserView.as_view()),
 ]
 urlpatterns += router.urls
 urlpatterns += orders_router.urls
