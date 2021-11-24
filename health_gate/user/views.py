@@ -8,18 +8,24 @@ from api.permissions import IsAccountOwner
 User = get_user_model()
 
 
-class CurrentUserView(generics.ListAPIView):
+class CurrentUserView(viewsets.ModelViewSet):
     """
-    Вывод списка текущего Пользовтеля
+    Вывод текущего Пользовтеля
     """
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
-    def get_queryset(self):
+    def get_object(self):
         """
-        Любой юзер может видеть свой аккаунт и производить над ним действия.
+        При запросе выдает текущего пользователя
         """
-        return User.objects.filter(id=self.request.user.id)
+        return self.request.user
+
+    def list(self, request, *args, **kwargs):
+        """
+        Переопределение метода и направление его в retrieve для выдачи одного текущего юзера
+        """
+        return self.retrieve(request, *args, **kwargs)
 
 
 class UserView(viewsets.ModelViewSet):
