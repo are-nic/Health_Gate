@@ -169,7 +169,7 @@ class Recipe(models.Model):
     category = models.ForeignKey(Category, verbose_name='Категория', on_delete=models.SET_NULL, null=True, blank=True)
     kitchen = models.ForeignKey(Kitchen, verbose_name='Тип кухни', on_delete=models.SET_NULL, null=True, blank=True)
     title = models.CharField(max_length=255, verbose_name='Название рецепта')
-    slug = models.SlugField(unique=True)
+    # slug = models.SlugField(unique=True)
     level = models.CharField(max_length=20, choices=LEVEL, verbose_name='Уровень сложности блюда')
     no_preservatives = models.BooleanField(default=False, verbose_name='Без консервантов')
     cooking_time = models.CharField(max_length=50, verbose_name='Время приготовления')
@@ -195,17 +195,6 @@ class Recipe(models.Model):
 
     def __str__(self):
         return self.title
-
-    def save(self, *args, **kwargs):
-        """
-        для автоматического заполнения поля slug при создании рецепта
-        для заполнения поля media_extension в зависимости от значения поля media
-        """
-        self.slug = slugify(self.title)
-
-        self.media_extension = get_media_extension(self.media)
-
-        return super(Recipe, self).save(*args, **kwargs)
 
 
 class Ingredient(models.Model):
