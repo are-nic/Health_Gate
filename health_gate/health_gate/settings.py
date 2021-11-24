@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'django_filters',
+    'drf_multiple_model',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
