@@ -4,6 +4,7 @@ from rest_framework_nested import routers
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
 from food.views import (RecommendRecipesListView,
                         IngredientView,
+                        CategoryAndKitchenView,
                         CommentView,
                         ProductView,
                         CookStepView,
@@ -57,6 +58,7 @@ router.register('current-user', CurrentUserView)
 urlpatterns = [
     path('recipes-recommend', RecommendRecipesListView.as_view()),
     path('filters', FilterView.as_view()),
+    path('extra-data', CategoryAndKitchenView.as_view()),
     path('token', TokenObtainPairView.as_view()),
     path('token/refresh', TokenRefreshView.as_view()),
     path('token/verify', TokenVerifyView.as_view()),
