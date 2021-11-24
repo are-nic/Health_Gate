@@ -22,7 +22,7 @@ class CookStepAdmin(admin.TabularInline):       # для вложенных в �
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    prepopulated_fields = {'slug': ('title',)}  # для автозаполнения поля slug у модели Recipe
+    # prepopulated_fields = {'slug': ('title',)}  # для автозаполнения поля slug у модели Recipe
     filter_horizontal = ('tags',)               # выбор тэгов
     inlines = [IngredientAdmin, CookStepAdmin]
 
