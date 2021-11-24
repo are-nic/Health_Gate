@@ -56,9 +56,9 @@ urlpatterns = [
     path('recipes-recommend', RecommendRecipesListView.as_view()),
     path('filters', FilterView.as_view()),
     path('current-user', CurrentUserView.as_view()),
-    path('token/', TokenObtainPairView.as_view()),
-    path('token/refresh/', TokenRefreshView.as_view()),
-    path('token/verify/', TokenVerifyView.as_view()),
+    path('token', TokenObtainPairView.as_view()),
+    path('token/refresh', TokenRefreshView.as_view()),
+    path('token/verify', TokenVerifyView.as_view()),
 ]
 urlpatterns += router.urls
 urlpatterns += orders_router.urls
