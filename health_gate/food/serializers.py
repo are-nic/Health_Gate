@@ -212,3 +212,19 @@ class FilterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Filter
         fields = ('title', 'subtypes')
+
+
+class RecipeCategorySerializer(serializers.ModelSerializer):
+    """Категории рецептов"""
+
+    class Meta:
+        model = Category
+        exclude = ('slug',)
+
+
+class KitchenSerializer(serializers.ModelSerializer):
+    """Кухня"""
+
+    class Meta:
+        model = Kitchen
+        exclude = ('slug',)
