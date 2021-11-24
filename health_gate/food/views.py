@@ -1,14 +1,17 @@
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from .models import Recipe, Comment, Ingredient, Product, CookStep, Tag, Filter
+from .models import Recipe, Comment, Ingredient, Product, CookStep, Tag, Filter, Category, Kitchen
 from rest_framework import viewsets, generics, status
 from api.permissions import AuthorComment, RecipeOwner, IsOwnerRecipeIngredients, IsSuperUser
+from drf_multiple_model.views import ObjectMultipleModelAPIView
 
 from .serializers import (RecipeListSerializer,
                           RecipeDetailSerializer,
                           RecipeSerializer,
                           RecipeCreateSerializer,
+                          RecipeCategorySerializer,
+                          KitchenSerializer,
                           IngredientSerializer,
                           CommentSerializer,
                           ProductSerializer,
@@ -211,3 +214,11 @@ class FilterView(generics.ListAPIView):
 
     def get_queryset(self):
         return Filter.objects.all()
+
+
+class CategoryAndKitchenView(ObjectMultipleModelAPIView):
+
+    querylist = [
+        {'queryset': Category.objects.all(), 'serializer_class': RecipeCategorySerializer},
+        {'queryset': Kitchen.objects.all(), 'serializer_class': KitchenSerializer},
+    ]
