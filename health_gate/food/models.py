@@ -120,7 +120,7 @@ class Subtype(models.Model):
     filter = models.ForeignKey(Filter, verbose_name='Основные фильтры предпочтений', on_delete=models.CASCADE,
                                related_name='subtypes')
     title = models.CharField(max_length=100, verbose_name='Заголовок подтипа')
-    icon = models.ImageField(verbose_name='Иконка подтипа', upload_to='tags', blank=True, null=True)
+    icon = models.FileField(verbose_name='Иконка подтипа', upload_to='tags', blank=True, null=True)
 
     class Meta:
         ordering = ('title',)
