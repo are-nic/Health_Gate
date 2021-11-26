@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from .models import Recipe, Comment, Ingredient, Product, CookStep, Tag, Filter, Category, Kitchen
-from rest_framework import viewsets, generics, status
+from rest_framework import viewsets, generics, status, filters
 from api.permissions import AuthorComment, RecipeOwner, IsOwnerRecipeIngredients, IsSuperUser
 from drf_multiple_model.views import ObjectMultipleModelAPIView
 
@@ -168,6 +168,8 @@ class ProductView(viewsets.ModelViewSet):
     """
     queryset = Product.objects.order_by('shop')
     serializer_class = ProductSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name']
 
     def get_permissions(self):
         """
