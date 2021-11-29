@@ -55,7 +55,8 @@ class CookStepSerializer(serializers.ModelSerializer):
     """
     Шаги приготовления рецепт
     """
-    recipe = serializers.SlugRelatedField(slug_field='title', queryset=Recipe.objects.all())
+    # recipe = serializers.SlugRelatedField(slug_field='title', queryset=Recipe.objects.all())
+    ingredient = serializers.SlugRelatedField(slug_field='name', queryset=Product.objects.all(), required=True)
 
     class Meta:
         model = CookStep
