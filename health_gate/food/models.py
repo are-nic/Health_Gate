@@ -237,9 +237,10 @@ class CookStep(models.Model):
     У каждого рецепта есть шаги по приготовлению оного.
     """
     recipe = models.ForeignKey(Recipe, verbose_name='Рецепт', on_delete=models.CASCADE, related_name='steps')
+    ingredient = models.ForeignKey(Product, verbose_name='Ингредиент', on_delete=models.CASCADE, null=True, blank=True)
     title = models.CharField(max_length=200, verbose_name='Заголовок шага')
     description = models.TextField(verbose_name='Описание шага')
-    image = models.ImageField(verbose_name='Фото шага', blank=True, null=True, upload_to='steps')  # указать путь
+    image = models.ImageField(verbose_name='Фото шага', blank=True, null=True, upload_to='steps')
 
     class Meta:
         ordering = ('title',)
