@@ -79,17 +79,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
         при создании рецепта через post запрос текущий юзер становится его создателем
         привязка ингредиентов и шагов приготовления, созданных внутри рецепта.
         """
-        serializer.save(owner=self.request.user)                            # сохраняем текущий рецепт
+        recipe = serializer.save(owner=self.request.user)
+        Ingredient.objects.bulk_create([Ingredient(**{
+            **ingredient,
+            "recipe": recipe,
+            "product": Product.objects.get(name=ingredient['product']),
+        }) for ingredient in self.request.data.get('ingredients')])
 
-        ingredients_data = self.request.data.pop('ingredients')             # забираем из передаваемых данных список ингредиентов
-        recipe = list(Recipe.objects.all())[-1]                             # присваиваем переменной только что созданный рецепт
-        for ingredient_data in ingredients_data:                            # перебор всех переданных ингредиентов
-            ingredient_data['product'] = Product.objects.get(name=ingredient_data['product'])
-            Ingredient.objects.create(recipe=recipe, **ingredient_data)     # создание ингредиента и привязка его к рецепту
-
-        steps_data = self.request.data.pop('steps')                         # забираем из передаваемых данных список шагов приготовления                            # присваиваем переменной только что созданный рецепт
-        for step_data in steps_data:                                        # перебор всех переданных шагов
-            CookStep.objects.create(recipe=recipe, **step_data)             # создание шага и привязка его к рецепту
+        # TODO: create steps
 
 
 class IngredientView(viewsets.ModelViewSet):
@@ -219,7 +216,6 @@ class FilterView(generics.ListAPIView):
 
 
 class CategoryAndKitchenView(ObjectMultipleModelAPIView):
-
     querylist = [
         {'queryset': Category.objects.all(), 'serializer_class': RecipeCategorySerializer},
         {'queryset': Kitchen.objects.all(), 'serializer_class': KitchenSerializer},
