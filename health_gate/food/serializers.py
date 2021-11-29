@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import Recipe, Ingredient, Comment, Product, CookStep, Category, Kitchen, Tag, Subtype, Filter
 from django.contrib.auth import get_user_model
-
+from drf_extra_fields.fields import Base64ImageField
 User = get_user_model()
 
 
@@ -90,6 +90,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     kitchen = serializers.SlugRelatedField(slug_field='name', queryset=Kitchen.objects.all())
     level = ChoiceField(choices=Recipe.LEVEL)
     tags = serializers.SlugRelatedField(many=True, slug_field='name', queryset=Tag.objects.all())
+    media = Base64ImageField()
 
     class Meta:
         model = Recipe
