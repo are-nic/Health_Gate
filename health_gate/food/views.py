@@ -188,7 +188,7 @@ class TagViewSet(viewsets.ModelViewSet):
     """
     Просмотр, создание и редактирование Тэгов.
     Доступы: редактировать может только Суперпользователь,
-             просмотр доступен авторизованному пальзователю.
+             просмотр доступен .
     """
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
