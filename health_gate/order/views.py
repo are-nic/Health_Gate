@@ -1,6 +1,7 @@
 from rest_framework import viewsets, generics
 
 from .models import Order, OrderRecipe, MealPlanRecipe
+from food.models import Recipe
 
 from .serializers import (OrderListSerializer,
                           OrderDetailSerializer,
@@ -45,15 +46,25 @@ class OrderViewSet(viewsets.ModelViewSet):
         return OrderDetailSerializer
 
     def perform_create(self, serializer):
-        """при создании заказа текущий юзер заносится в поле Customer"""
-        serializer.save(customer=self.request.user)
-        if self.request.data('phone_number') == '':
-            serializer.save(phone_number=self.request.user.phone_number)
+        """При создании заказа текущий юзер заносится в поле Customer"""
+        recipes = self.request.data.pop('recipes')
 
-        recipes_data = self.request.data.pop('recipes')             # забираем из передаваемых данных список рецептов
-        order = list(Order.objects.all())[-1]                       # присваиваем переменной только что созданный заказ
-        for recipe_data in recipes_data:                            # перебор всех переданных в заказ рецептов
-            OrderRecipe.objects.create(order=order, **recipe_data)  # создание рецепта заказа и привязка его к заказу
+        order = Order.objects.create(
+            customer=self.request.user,
+            name=self.request.data.get('name'),
+            address=self.request.data.get('address'),
+            phone_number=self.request.data.get('phone_number'),
+            pay_method=self.request.data.get('pay_method'),
+            at_door=self.request.data.get('at_door'),
+        )
+
+        for recipe_data in recipes:
+            recipe = Recipe.objects.filter(title=recipe_data.get('recipe')).first()
+            OrderRecipe.objects.create(
+                recipe=recipe,
+                qty=recipe_data.get('qty'),
+                order=order
+            )
 
 
 class OrderRecipeViewSet(viewsets.ModelViewSet):
