@@ -14,7 +14,7 @@ def get_qty_and_measure(name):
     """
     Метод нахождения меры веса или объема товара и его кол-во в имени товара с помощью регулярных выражений
     """
-    qty_for_db = {'qty': 1.0, 'measure': 'кг.'} # передаваемый словарь с данными по кол-ву товара и его мере веса/объема
+    qty_for_db = {'qty': 1.0, 'measure': 'кг.'}     # словарь с данными по кол-ву товара и его мере веса/объема
     pattern = r"[0-9]*[.,]?[0-9]{1,3}[ ]?(?:кг|гр|г|ГР|л|мл|шт|штук)\b"
     if len(re.findall(pattern, name)) == 1:      # если кол-во найденых мер веса и объема в имени одного товара равно 1
         qty_product = re.search(pattern, name)   # находим кол-во товара и его меру веса/объема
@@ -57,7 +57,7 @@ def get_products():
         # проходим циклом по всем категориям товаров
         for category in work_data['yml_catalog']['shop']['categories']['category']:
             if not CategoryProduct.objects.filter(id=int(category['@id'])).exists():      # если категории еще нет в БД
-                category = CategoryProduct(id=int(category['@id']), name=category['#text'])  # создаем категорию в БД
+                category = CategoryProduct(id=int(category['@id']), name=category['#text'])  # создаем категорию
                 category.save()                                                              # сохраняем категорию в БД
 
         for product in work_data['yml_catalog']['shop']['offers']['offer']:
