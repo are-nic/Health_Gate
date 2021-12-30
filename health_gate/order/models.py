@@ -13,12 +13,13 @@ class Order(models.Model):
     PAY_METHOD = [
         ('UPON_RECEIPT', 'Оплатить наличными или картой при получении'),
         ('ONLINE', 'Оплатить онлайн'),
+        ('APPLE_PAY', 'Apple pay'),
     ]
     customer = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Покупатель', null=True)
     name = models.CharField(max_length=50, verbose_name='Имя', blank=True, null=True)
     address = models.CharField(max_length=250, verbose_name='Адрес доставки', null=True)
     phone_number = models.PositiveIntegerField(verbose_name='Телефон', blank=True, null=True)
-    pay_method = models.CharField(max_length=12, choices=PAY_METHOD, verbose_name='Способ оплаты')
+    pay_method = models.CharField(max_length=100, choices=PAY_METHOD, verbose_name='Способ оплаты')
     at_door = models.BooleanField(default=False, verbose_name='Оставить заказ у дверей')
     promocode = models.CharField(max_length=50, verbose_name='Промокод', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создан')
