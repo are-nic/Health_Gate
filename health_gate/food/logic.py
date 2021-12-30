@@ -1,4 +1,3 @@
-# Бизнес-логика
 
 def get_media_extension(path):
     """
