@@ -22,6 +22,7 @@ class UserSerializer(serializers.ModelSerializer):
     При регистрации пользователя запрашивается доп поле с указанием группы: 'bloger' или 'customer'
     Так же в параметрах можно указать имеющиеся в БД теги.
     """
+
     recipes = RecipeListSerializer(many=True, required=False)
     groups = serializers.SlugRelatedField(many=True, slug_field='name', queryset=Group.objects.all(),
                                           required=True,

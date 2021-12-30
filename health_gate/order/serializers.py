@@ -28,7 +28,7 @@ class OrderRecipeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrderRecipe
-        fields = '__all__'
+        fields = ('recipe', 'qty')
 
 
 '''
@@ -99,4 +99,3 @@ class MealPlanRecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = MealPlanRecipe
         fields = '__all__'
-
