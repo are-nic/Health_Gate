@@ -1,11 +1,23 @@
-from decimal import Decimal
-from .logic import get_media_extension
 from django.conf import settings
-from django.core.validators import MinValueValidator
 from django.db import models
-from slugify import slugify
 
 User = settings.AUTH_USER_MODEL
+
+
+class Ingredient(models.Model):
+    """
+    Ингредиент
+    """
+    name = models.CharField(max_length=100, verbose_name='Название')
+
+    class Meta:
+        ordering = ('name',)
+        verbose_name = 'Ингредиент'
+        verbose_name_plural = 'Ингредиенты'
+        db_table = 'Ingredients'
+
+    def __str__(self):
+        return self.name
 
 
 class CategoryProduct(models.Model):
@@ -35,6 +47,8 @@ class Product(models.Model):
         ('шт', 'шт')
     ]
 
+    ingredient = models.ForeignKey(Ingredient, verbose_name='Ингредиент', on_delete=models.CASCADE,
+                                   related_name='products')
     shop = models.CharField(max_length=50, verbose_name='Магазин', null=True, blank=True)
     category = models.ForeignKey(CategoryProduct, verbose_name='Категория', on_delete=models.CASCADE,
                                  db_constraint=False, null=True, blank=True)
@@ -52,6 +66,7 @@ class Product(models.Model):
     available = models.BooleanField(default=True, verbose_name='В наличии')
     added = models.DateTimeField(auto_now_add=True, verbose_name='Добавлен')
     updated = models.DateTimeField(auto_now=True, verbose_name='Обновлен')
+    analogs = models.ManyToManyField('food.Product', related_name='analog_products')
 
     class Meta:
         ordering = ('name',)
@@ -65,7 +80,7 @@ class Product(models.Model):
 
 class Category(models.Model):
     """
-    категории рецептов
+    Категории рецептов
     """
     name = models.CharField(max_length=100, verbose_name="Название категории")
     slug = models.SlugField(unique=True)
@@ -169,7 +184,6 @@ class Recipe(models.Model):
     category = models.ForeignKey(Category, verbose_name='Категория', on_delete=models.SET_NULL, null=True, blank=True)
     kitchen = models.ForeignKey(Kitchen, verbose_name='Тип кухни', on_delete=models.SET_NULL, null=True, blank=True)
     title = models.CharField(max_length=255, verbose_name='Название рецепта')
-    # slug = models.SlugField(unique=True)
     level = models.CharField(max_length=20, choices=LEVEL, verbose_name='Уровень сложности блюда')
     no_preservatives = models.BooleanField(default=False, verbose_name='Без консервантов')
     cooking_time = models.CharField(max_length=50, verbose_name='Время приготовления')
@@ -179,10 +193,7 @@ class Recipe(models.Model):
     kkal = models.IntegerField(verbose_name='Калории', null=True)
     description = models.TextField(verbose_name='Описание')
     media = models.FileField(verbose_name='Фото/Видео', upload_to='recipes', blank=True, null=True)
-    media_extension = models.CharField(max_length=5, choices=EXTENSION, verbose_name='Расширение файла media',
-                                       null=True)
-    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Цена',
-                                default=0.00, validators=[MinValueValidator(Decimal('0.00'))])
+    media_extension = models.CharField(max_length=5, choices=EXTENSION, verbose_name='Расширение файла media', null=True)
     portions = models.PositiveIntegerField(verbose_name='Кол-во порций', default=1)
     date_created = models.DateTimeField(auto_now_add=True, null=True, verbose_name='создан')
     tags = models.ManyToManyField(Tag, blank=True, verbose_name='Тэги')
@@ -197,10 +208,11 @@ class Recipe(models.Model):
         return self.title
 
 
-class Ingredient(models.Model):
+class IngredientRecipe(models.Model):
     """
-    Экземпляр ингридиента, который принадлежит к конкретному рецепту в определенном кол-ве.
-    для получения всех ингридиентов по какому либо рецепту использовать: recipe.ingredients.all()
+    Ингредиент рецепта, который принадлежит к конкретному рецепту в определенном кол-ве.
+    Так же имеет отношение к общему ингредиенту.
+    Для получения всех ингредиентов по какому-либо рецепту использовать: recipe.ingredients.all()
     """
 
     UNITS = [
@@ -216,19 +228,18 @@ class Ingredient(models.Model):
     ]
 
     recipe = models.ForeignKey(Recipe, verbose_name='Рецепт', on_delete=models.CASCADE, related_name='ingredients')
-    product = models.ForeignKey(Product, verbose_name='Продукт', on_delete=models.SET_NULL, null=True, blank=True)
-    # name = models.CharField(max_length=200, verbose_name='Имя ингредиента')
+    ingredient = models.ForeignKey(Ingredient, verbose_name='Ингредиент', on_delete=models.SET_NULL, null=True)
     qty = models.PositiveIntegerField(verbose_name='Кол-во')
     unit = models.CharField(max_length=20, choices=UNITS, verbose_name='Ед. измерения')
 
     class Meta:
         ordering = ('recipe',)
-        verbose_name = 'Ингредиент'
-        verbose_name_plural = 'Ингредиенты'
-        db_table = 'Ingredient'
+        verbose_name = 'Ингредиент рецепта'
+        verbose_name_plural = 'Ингредиенты рецепта'
+        db_table = 'IngredientRecipe'
 
     def __str__(self):
-        return self.product.name
+        return self.ingredient.name
 
 
 class CookStep(models.Model):
@@ -237,7 +248,7 @@ class CookStep(models.Model):
     У каждого рецепта есть шаги по приготовлению оного.
     """
     recipe = models.ForeignKey(Recipe, verbose_name='Рецепт', on_delete=models.CASCADE, related_name='steps')
-    ingredient = models.ForeignKey(Product, verbose_name='Ингредиент', on_delete=models.CASCADE, null=True, blank=True)
+    ingredients = models.ManyToManyField(Product, verbose_name='Ингредиент', blank=True)
     title = models.CharField(max_length=200, verbose_name='Заголовок шага')
     description = models.TextField(verbose_name='Описание шага')
     image = models.ImageField(verbose_name='Фото шага', blank=True, null=True, upload_to='steps')
