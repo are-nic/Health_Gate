@@ -1,23 +1,30 @@
+import uuid
+import base64
+
+from django.core.files.base import ContentFile
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from .models import Recipe, Comment, Ingredient, Product, CookStep, Tag, Filter, Category, Kitchen
+from .models import Recipe, Comment, IngredientRecipe, Product, CookStep, Tag, Filter, Category, Kitchen
 from rest_framework import viewsets, generics, status, filters
 from api.permissions import AuthorComment, RecipeOwner, IsOwnerRecipeIngredients, IsSuperUser
 from drf_multiple_model.views import ObjectMultipleModelAPIView
+from rest_framework.pagination import PageNumberPagination
 
-from .serializers import (RecipeListSerializer,
-                          RecipeDetailSerializer,
-                          RecipeSerializer,
-                          RecipeCreateSerializer,
-                          RecipeCategorySerializer,
-                          KitchenSerializer,
-                          IngredientSerializer,
-                          CommentSerializer,
-                          ProductSerializer,
-                          CookStepSerializer,
-                          TagSerializer,
-                          FilterSerializer)
+from .serializers import (
+    RecipeListSerializer,
+    RecipeDetailSerializer,
+    RecipeSerializer,
+    RecipeCreateSerializer,
+    RecipeCategorySerializer,
+    KitchenSerializer,
+    IngredientRecipeSerializer,
+    CommentSerializer,
+    ProductSerializer,
+    CookStepSerializer,
+    TagSerializer,
+    FilterSerializer
+)
 
 User = get_user_model()
 
@@ -66,30 +73,46 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         """переопределение метода для предоставления права создания рецепта только пользователям из группы "bloger" """
-        if request.user.groups.filter(name='bloger').exists() or request.user.is_superuser:
+        if request.user.groups.filter(name='blogger').exists() or request.user.is_superuser:
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
             headers = self.get_success_headers(serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-        return Response({"error": "Рецепты могут создавать пользователи из группы 'bloger' или Суперпользователь"})
+        return Response({
+            "error": "Рецепты могут создавать пользователи из группы 'blogger' или Суперпользователь"},
+            403
+        )
 
     def perform_create(self, serializer):
         """
-        при создании рецепта через post запрос текущий юзер становится его создателем
+        При создании рецепта через post запрос текущий юзер становится его создателем
         привязка ингредиентов и шагов приготовления, созданных внутри рецепта.
         """
-        serializer.save(owner=self.request.user)                            # сохраняем текущий рецепт
+        recipe = serializer.save(owner=self.request.user)
 
-        ingredients_data = self.request.data.pop('ingredients')             # забираем из передаваемых данных список ингредиентов
-        recipe = list(Recipe.objects.all())[-1]                             # присваиваем переменной только что созданный рецепт
-        for ingredient_data in ingredients_data:                            # перебор всех переданных ингредиентов
-            ingredient_data['product'] = Product.objects.get(name=ingredient_data['product'])
-            Ingredient.objects.create(recipe=recipe, **ingredient_data)     # создание ингредиента и привязка его к рецепту
+        IngredientRecipe.objects.bulk_create([IngredientRecipe(**{
+            **ingredient,
+            "recipe": recipe,
+            "product": Product.objects.get(name=ingredient['product']),
+        }) for ingredient in self.request.data.get('ingredients')])
 
-        steps_data = self.request.data.pop('steps')                         # забираем из передаваемых данных список шагов приготовления                            # присваиваем переменной только что созданный рецепт
-        for step_data in steps_data:                                        # перебор всех переданных шагов
-            CookStep.objects.create(recipe=recipe, **step_data)             # создание шага и привязка его к рецепту
+        for step_data in self.request.data.get('steps'):
+            file_format, image_str = step_data.get('image').split(';base64,')
+            ext = file_format.split('/')[-1]
+
+            cook_step = CookStep.objects.create(
+                recipe=recipe,
+                title=step_data.get('title'),
+                description=step_data.get('description'),
+                image=ContentFile(base64.b64decode(image_str), name=f'{uuid.uuid4()}.{ext})'),
+            )
+
+            cook_step_ingredients = IngredientRecipe.objects.filter(
+                recipe=recipe, product__name__in=step_data.get('ingredients')
+            )
+            cook_step.ingredients.set(ingredient.id for ingredient in cook_step_ingredients)
+            cook_step.save()
 
 
 class IngredientView(viewsets.ModelViewSet):
@@ -98,8 +121,8 @@ class IngredientView(viewsets.ModelViewSet):
     get, post, put, patch, delete
     Сортировка по рецептам
     """
-    queryset = Ingredient.objects.all()
-    serializer_class = IngredientSerializer
+    queryset = IngredientRecipe.objects.all()
+    serializer_class = IngredientRecipeSerializer
     permission_classes = [IsOwnerRecipeIngredients]
 
     def get_queryset(self):
@@ -159,6 +182,12 @@ class CommentView(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
 
 
+class ProductPagePagination(PageNumberPagination):
+    page_size = 20
+    max_page_size = 20
+    page_size_query_param = 'page_size'
+
+
 class ProductView(viewsets.ModelViewSet):
     """
     Просмотр, создание и редактирование Проодуктов.
@@ -170,11 +199,12 @@ class ProductView(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['name']
+    pagination_class = ProductPagePagination
 
     def get_permissions(self):
         """
         Просмотр продуктов доступен любому авторизованному пользователю
-        Какие-либо дейсвтия над продуктами доступны только суперпользователю
+        Какие-либо действия над продуктами доступны только суперпользователю
         :return: список разрешений
         """
         if self.request.method == 'GET':
@@ -188,7 +218,7 @@ class TagViewSet(viewsets.ModelViewSet):
     """
     Просмотр, создание и редактирование Тэгов.
     Доступы: редактировать может только Суперпользователь,
-             просмотр доступен .
+             просмотр доступен.
     """
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
@@ -196,7 +226,7 @@ class TagViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         """
         Просмотр тэгов доступен всем (в т.ч. неавторизованным Пользователям)
-        Какие-либо дейсвтия над тэгами доступны только суперпользователю
+        Какие-либо действия над тэгами доступны только суперпользователю
         :return: список разрешений
         """
         if self.request.method == 'GET':
@@ -219,7 +249,6 @@ class FilterView(generics.ListAPIView):
 
 
 class CategoryAndKitchenView(ObjectMultipleModelAPIView):
-
     querylist = [
         {'queryset': Category.objects.all(), 'serializer_class': RecipeCategorySerializer},
         {'queryset': Kitchen.objects.all(), 'serializer_class': KitchenSerializer},
