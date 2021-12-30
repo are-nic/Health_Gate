@@ -1,7 +1,7 @@
 from rest_framework import serializers
-from .models import Recipe, Ingredient, Comment, Product, CookStep, Category, Kitchen, Tag, Subtype, Filter
+from .models import Recipe, IngredientRecipe, Comment, Product, CookStep, Category, Kitchen, Tag, Subtype, Filter
 from django.contrib.auth import get_user_model
-
+from drf_extra_fields.fields import Base64ImageField
 User = get_user_model()
 
 
@@ -26,17 +26,31 @@ class ChoiceField(serializers.ChoiceField):
         self.fail('invalid_choice', input=data)
 
 
-class IngredientSerializer(serializers.ModelSerializer):
+class IngredientRecipeSerializer(serializers.ModelSerializer):
     """
     Ингредиент
     """
     recipe = serializers.SlugRelatedField(slug_field='title', queryset=Recipe.objects.all())
     product = serializers.SlugRelatedField(slug_field='name', queryset=Product.objects.all())
-    unit = serializers.ChoiceField(choices=Ingredient.UNITS)
+    unit = serializers.ChoiceField(choices=IngredientRecipe.UNITS)
 
     class Meta:
-        model = Ingredient
+        model = IngredientRecipe
         fields = ['id', 'recipe', 'product', 'qty', 'unit']
+
+
+class IngredientProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = ['id', 'name',  'picture', 'qty_per_item', 'price', 'shop_id']
+
+
+class IngredientRecipeWithProductSerializer(serializers.ModelSerializer):
+    product = IngredientProductSerializer()
+
+    class Meta:
+        model = IngredientRecipe
+        fields = ['id',  'product', 'qty']
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -55,8 +69,6 @@ class CookStepSerializer(serializers.ModelSerializer):
     """
     Шаги приготовления рецепт
     """
-    # recipe = serializers.SlugRelatedField(slug_field='title', queryset=Recipe.objects.all())
-    ingredient = serializers.SlugRelatedField(slug_field='name', queryset=Product.objects.all(), required=True)
 
     class Meta:
         model = CookStep
@@ -90,6 +102,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     kitchen = serializers.SlugRelatedField(slug_field='name', queryset=Kitchen.objects.all())
     level = ChoiceField(choices=Recipe.LEVEL)
     tags = serializers.SlugRelatedField(many=True, slug_field='name', queryset=Tag.objects.all())
+    media = Base64ImageField()
 
     class Meta:
         model = Recipe
@@ -101,7 +114,7 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
     owner = UserForRecipeSerializer()
     category = serializers.SlugRelatedField(slug_field='name', queryset=Category.objects.all())
     kitchen = serializers.SlugRelatedField(slug_field='name', queryset=Kitchen.objects.all())
-    ingredients = IngredientSerializer(many=True)
+    ingredients = IngredientRecipeWithProductSerializer(many=True)
     level = ChoiceField(choices=Recipe.LEVEL)
     steps = CookStepSerializer(many=True)
     tags = serializers.SlugRelatedField(many=True, slug_field='name', queryset=Tag.objects.all())
@@ -117,7 +130,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     owner = serializers.ReadOnlyField(source='owner.phone_number')
     category = serializers.SlugRelatedField(slug_field='name', queryset=Category.objects.all())
     kitchen = serializers.SlugRelatedField(slug_field='name', queryset=Kitchen.objects.all())
-    ingredients = IngredientSerializer(many=True)
+    ingredients = IngredientRecipeSerializer(many=True)
     level = ChoiceField(choices=Recipe.LEVEL)
     steps = CookStepSerializer(many=True, required=False)
     tags = serializers.SlugRelatedField(many=True, slug_field='name', queryset=Tag.objects.all())
