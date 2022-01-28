@@ -10,6 +10,7 @@ from django.core.management.base import BaseCommand
 import csv
 import re
 import requests
+import difflib as dl
 
 
 def get_qty_and_measure(name):
@@ -74,9 +75,11 @@ def get_calories(calories):
     return 0
 
 
-def get_ingredient(product):
-    if Ingredient.objects.get(name=product).exists():
-        return product
+def get_clear_product(product):
+    pattern = r'\b[а-яА-ЯёЁ ]+'
+    product = re.search(pattern, product)[0]
+    # print(product, '-------clear---------')
+    return product
 
 
 def get_products():
@@ -140,6 +143,7 @@ def get_products():
             'Аксессуары для детей',
             'Аксессуары для животных',
             'Аксессуары для спорта',
+            'Аксессуары на телефон',
             'Бытовая химия',
             'Витамины и бады',
             'Водный спорт',
@@ -170,10 +174,16 @@ def get_products():
             'Хозяйственные товары ',
             'Чистящие средства'
         ]
+
+        i = 0       # счетчик ингредиентов
+        j = 0       # счетчик продуктов
+        ingredients = [str(ingredient) for ingredient in Ingredient.objects.all()]
+
         products = res.content.decode('utf-8').split('\n')
         reader = csv.DictReader(products, delimiter=';', fieldnames=fieldnames)
         for product in reader:
             # если категория не в списке недопустимых категорий товаров и ее еще нет в БД
+            j += 1
             if product['category'] not in invalid_category and \
                     not CategoryProduct.objects.filter(name=product['category']).exists():
                 category = CategoryProduct(name=product['category'], shop=product['shop'])  # создаем категорию
@@ -182,22 +192,32 @@ def get_products():
             # если категория не в списке недопустимых категорий товаров
             # и в имени продукта есть пограммовка, создаем и сохраняем продукт
             if product['category'] not in invalid_category and get_qty_and_measure(product['name']) is not None:
-                print(product['name'])
-                '''product_db = Product(
-                    shop=product['shop'],
-                    category=CategoryProduct.objects.get(name=product['category']),
-                    shop_id=int(product['id']),
-                    name=product['name'],
-                    picture=product['picture'],
-                    proteins=get_organic(product['proteins']),
-                    fats=get_organic(product['fats']),
-                    carbohydrates=get_organic(product['carbohydrates']),
-                    calories=get_calories(product['calories']),
-                    qty_per_item=float(get_qty_and_measure(product['name'])['qty']),
-                    unit=get_qty_and_measure(product['name'])['measure'],
-                    price=float(product['price'])
-                )
-                product_db.save()'''
+                clear_product = get_clear_product(product['name'])
+                match = dl.get_close_matches(clear_product, ingredients, cutoff=0.8)
+                if len(match) > 0:  # если найдены сходства ингредиента с названием продукта
+                    print(match[0])
+                    print(product['name'])
+                    print('-------------------------------------------------')
+                    i += 1
+
+                    product_db = Product(
+                        ingredient=Ingredient.objects.get(name=match[0]),
+                        shop=product['shop'],
+                        category=CategoryProduct.objects.get(name=product['category']),
+                        shop_id=int(product['id']),
+                        name=product['name'],
+                        picture=product['picture'],
+                        proteins=get_organic(product['proteins']),
+                        fats=get_organic(product['fats']),
+                        carbohydrates=get_organic(product['carbohydrates']),
+                        calories=get_calories(product['calories']),
+                        qty_per_item=float(get_qty_and_measure(product['name'])['qty']),
+                        unit=get_qty_and_measure(product['name'])['measure'],
+                        price=float(product['price'])
+                    )
+                    product_db.save()
+        print(i, 'ingred')
+        print(j, 'prod')
 
 
 def clear_data():
