@@ -10,7 +10,7 @@ def get_ingredients():
     """
     В файле нет имен колонок, поэтому присваиваем имя колонке с ингредиентами - fieldnames=['ingredient']
     Ингредиенты из файла добавляются во множество ingredients для исключения повторений.
-    :return:
+    В результате создается множество объектов Ингредиентов
     """
     ingredients = set()
     with open(r'D:\downloads\telegram\БД ингредиенты 20.12.21\export_tovar_tag.csv', encoding='utf-8') as file:
