@@ -149,7 +149,7 @@ class Subtype(models.Model):
 
 class Tag(models.Model):
     """
-    Тэги
+    Теги
     """
     subtype = models.ForeignKey(Subtype, verbose_name='Подтип предпочтений/тегов', on_delete=models.CASCADE,
                                 related_name='tags')
