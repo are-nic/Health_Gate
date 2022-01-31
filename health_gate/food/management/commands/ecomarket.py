@@ -11,6 +11,7 @@ import csv
 import re
 import requests
 import difflib as dl
+from .products_lists import *
 
 
 def get_qty_and_measure(name):
@@ -77,9 +78,34 @@ def get_calories(calories):
 
 def get_clear_product(product):
     pattern = r'\b[а-яА-ЯёЁ ]+'
-    product = re.search(pattern, product)[0]
-    # print(product, '-------clear---------')
+    product = re.search(pattern, product)[0].split(' ')[:2]
+    product = ' '.join(product)
     return product
+
+
+def create_product(product, match):
+    """
+    создаем и сохраняем продукт
+    :param product:
+    :param match:
+    :return:
+    """
+    product_db = Product(
+        ingredient=Ingredient.objects.get(name=match),
+        shop=product['shop'],
+        category=CategoryProduct.objects.get(name=product['category']),
+        shop_id=int(product['id']),
+        name=product['name'],
+        picture=product['picture'],
+        proteins=get_organic(product['proteins']),
+        fats=get_organic(product['fats']),
+        carbohydrates=get_organic(product['carbohydrates']),
+        calories=get_calories(product['calories']),
+        qty_per_item=float(get_qty_and_measure(product['name'])['qty']),
+        unit=get_qty_and_measure(product['name'])['measure'],
+        price=float(product['price'])
+    )
+    product_db.save()
 
 
 def get_products():
@@ -137,44 +163,6 @@ def get_products():
             'qty'
         ]
 
-        # категории товаров экомаркета, не относящиеся к продуктам
-        invalid_category = [
-            'Автотовары',
-            'Аксессуары для детей',
-            'Аксессуары для животных',
-            'Аксессуары для спорта',
-            'Аксессуары на телефон',
-            'Бытовая химия',
-            'Витамины и бады',
-            'Водный спорт',
-            'Гигиена и уход',
-            'Дача и пикник',
-            'Детское питание',
-            'Для бани и сауны ',
-            'Для кухни',
-            'Для мытья посуды',
-            'Завтраки и сэндвичи',
-            'Игрушки',
-            'Кошки и собаки',
-            'Наполнители и пленки',
-            'Одноразовая посуда ',
-            'Подарочные наборы',
-            'Подгузники и салфетки',
-            'Посуда ',
-            'Предметы личной гигиены',
-            'Скидки к Новому Году ',
-            'Средства для стирки',
-            'Суперфуды и протеины ',
-            'Товары для творчества ',
-            'Только приготовить',
-            'Уход за волосами',
-            'Уход за кожей лица',
-            'Уход за полостью рта',
-            'Уход за телом',
-            'Хозяйственные товары ',
-            'Чистящие средства'
-        ]
-
         i = 0       # счетчик ингредиентов
         j = 0       # счетчик продуктов
         ingredients = [str(ingredient) for ingredient in Ingredient.objects.all()]
@@ -182,8 +170,8 @@ def get_products():
         products = res.content.decode('utf-8').split('\n')
         reader = csv.DictReader(products, delimiter=';', fieldnames=fieldnames)
         for product in reader:
+            j += 1      # увеличиваем счетчик продуктов
             # если категория не в списке недопустимых категорий товаров и ее еще нет в БД
-            j += 1
             if product['category'] not in invalid_category and \
                     not CategoryProduct.objects.filter(name=product['category']).exists():
                 category = CategoryProduct(name=product['category'], shop=product['shop'])  # создаем категорию
@@ -192,30 +180,27 @@ def get_products():
             # если категория не в списке недопустимых категорий товаров
             # и в имени продукта есть пограммовка, создаем и сохраняем продукт
             if product['category'] not in invalid_category and get_qty_and_measure(product['name']) is not None:
+                # убираем из имени продукта лишнее
                 clear_product = get_clear_product(product['name'])
+                # проверка сходства между продуктом и ингредиентами
                 match = dl.get_close_matches(clear_product, ingredients, cutoff=0.8)
                 if len(match) > 0:  # если найдены сходства ингредиента с названием продукта
-                    print(match[0])
+                    print(match[0], '--ингредиент--')
                     print(product['name'])
                     print('-------------------------------------------------')
-                    i += 1
+                    i += 1  # увеличиваем счетчик ингредиентов
+                    # создаем и сохраняем продукт
+                    create_product(product, match[0])
+                elif clear_product != ' ':  # если имя продукта непустое
+                    match = dl.get_close_matches(clear_product.split()[0], ingredients, cutoff=0.8)
+                    if len(match) > 0:
+                        print(match[0], '--ингредиент--')
+                        print(product['name'])
+                        print('-------------------------------------------------')
+                        i += 1
+                        # создаем и сохраняем продукт
+                        create_product(product, match[0])
 
-                    product_db = Product(
-                        ingredient=Ingredient.objects.get(name=match[0]),
-                        shop=product['shop'],
-                        category=CategoryProduct.objects.get(name=product['category']),
-                        shop_id=int(product['id']),
-                        name=product['name'],
-                        picture=product['picture'],
-                        proteins=get_organic(product['proteins']),
-                        fats=get_organic(product['fats']),
-                        carbohydrates=get_organic(product['carbohydrates']),
-                        calories=get_calories(product['calories']),
-                        qty_per_item=float(get_qty_and_measure(product['name'])['qty']),
-                        unit=get_qty_and_measure(product['name'])['measure'],
-                        price=float(product['price'])
-                    )
-                    product_db.save()
         print(i, 'ingred')
         print(j, 'prod')
 
