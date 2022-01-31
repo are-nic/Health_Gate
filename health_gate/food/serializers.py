@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Recipe, IngredientRecipe, Comment, Product, CookStep, Category, Kitchen, Tag, Subtype, Filter
+from .models import Ingredient, Recipe, IngredientRecipe, Comment, Product, CookStep, Category, Kitchen, Tag, Subtype, Filter
 from django.contrib.auth import get_user_model
 from drf_extra_fields.fields import Base64ImageField
 User = get_user_model()
@@ -83,7 +83,7 @@ class UserForRecipeSerializer(serializers.ModelSerializer):
 
 # ----------------------------------------------------Recipes Only-------------------------------------------------
 class RecipeListSerializer(serializers.ModelSerializer):
-    """Вывод списока рецептов"""
+    """Вывод списка рецептов"""
     owner = UserForRecipeSerializer()
     category = serializers.SlugRelatedField(slug_field='name', queryset=Category.objects.all())
     kitchen = serializers.SlugRelatedField(slug_field='name', queryset=Kitchen.objects.all())
@@ -96,7 +96,7 @@ class RecipeListSerializer(serializers.ModelSerializer):
 
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
-    """для создания рецепта"""
+    """Для создания рецепта"""
     owner = serializers.ReadOnlyField(source='owner.phone_number')
     category = serializers.SlugRelatedField(slug_field='name', queryset=Category.objects.all())
     kitchen = serializers.SlugRelatedField(slug_field='name', queryset=Kitchen.objects.all())
@@ -110,7 +110,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
 
 class RecipeDetailSerializer(serializers.ModelSerializer):
-    """вывод одного рецепта"""
+    """Вывод одного рецепта"""
     owner = UserForRecipeSerializer()
     category = serializers.SlugRelatedField(slug_field='name', queryset=Category.objects.all())
     kitchen = serializers.SlugRelatedField(slug_field='name', queryset=Kitchen.objects.all())
@@ -242,3 +242,11 @@ class KitchenSerializer(serializers.ModelSerializer):
     class Meta:
         model = Kitchen
         exclude = ('slug',)
+
+
+class IngredientsListSerializer(serializers.ModelSerializer):
+    """Вывод списка ингредиентов"""
+
+    class Meta:
+        model = Ingredient
+        exclude = ['id']
