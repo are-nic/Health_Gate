@@ -85,10 +85,9 @@ def get_clear_product(product):
 
 def create_product(product, match):
     """
-    создаем и сохраняем продукт
-    :param product:
-    :param match:
-    :return:
+    Создаем и сохраняем продукт.
+    :param product: продукт, который нужно создать.
+    :param match: первый ингредиент из списка совпадений.
     """
     product_db = Product(
         ingredient=Ingredient.objects.get(name=match),
@@ -201,8 +200,8 @@ def get_products():
                         # создаем и сохраняем продукт
                         create_product(product, match[0])
 
-        print(i, 'ingred')
-        print(j, 'prod')
+        print(i, 'ingredients')
+        print(j, 'products')
 
 
 def clear_data():
