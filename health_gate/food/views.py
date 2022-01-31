@@ -5,7 +5,7 @@ from django.core.files.base import ContentFile
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from .models import Recipe, Comment, IngredientRecipe, Product, CookStep, Tag, Filter, Category, Kitchen
+from .models import Ingredient, Recipe, Comment, IngredientRecipe, Product, CookStep, Tag, Filter, Category, Kitchen
 from rest_framework import viewsets, generics, status, filters
 from api.permissions import AuthorComment, RecipeOwner, IsOwnerRecipeIngredients, IsSuperUser
 from drf_multiple_model.views import ObjectMultipleModelAPIView
@@ -23,7 +23,8 @@ from .serializers import (
     ProductSerializer,
     CookStepSerializer,
     TagSerializer,
-    FilterSerializer
+    FilterSerializer,
+    IngredientsListSerializer
 )
 
 User = get_user_model()
@@ -115,7 +116,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             cook_step.save()
 
 
-class IngredientView(viewsets.ModelViewSet):
+class IngredientRecipeView(viewsets.ModelViewSet):
     """
     Просмотр, создавание или редактирование ингредиентов рецептов.
     get, post, put, patch, delete
@@ -190,10 +191,10 @@ class ProductPagePagination(PageNumberPagination):
 
 class ProductView(viewsets.ModelViewSet):
     """
-    Просмотр, создание и редактирование Проодуктов.
+    Просмотр, создание и редактирование Продуктов.
     Сортировка по Магазину
     Доступы: редактировать может только Суперпользователь,
-             просмотр доступен авторизованному пальзователю.
+             просмотр доступен авторизованному пользователю.
     """
     queryset = Product.objects.order_by('shop')
     serializer_class = ProductSerializer
@@ -204,7 +205,7 @@ class ProductView(viewsets.ModelViewSet):
     def get_permissions(self):
         """
         Просмотр продуктов доступен любому авторизованному пользователю
-        Какие-либо действия над продуктами доступны только суперпользователю
+        Какие-либо действия над продуктами доступны только суперпользователю.
         :return: список разрешений
         """
         if self.request.method == 'GET':
@@ -216,7 +217,7 @@ class ProductView(viewsets.ModelViewSet):
 
 class TagViewSet(viewsets.ModelViewSet):
     """
-    Просмотр, создание и редактирование Тэгов.
+    Просмотр, создание и редактирование Тегов.
     Доступы: редактировать может только Суперпользователь,
              просмотр доступен.
     """
@@ -225,8 +226,8 @@ class TagViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         """
-        Просмотр тэгов доступен всем (в т.ч. неавторизованным Пользователям)
-        Какие-либо действия над тэгами доступны только суперпользователю
+        Просмотр тегов доступен всем (в т.ч. неавторизованным Пользователям)
+        Какие-либо действия над тегами доступны только суперпользователю.
         :return: список разрешений
         """
         if self.request.method == 'GET':
@@ -253,3 +254,13 @@ class CategoryAndKitchenView(ObjectMultipleModelAPIView):
         {'queryset': Category.objects.all(), 'serializer_class': RecipeCategorySerializer},
         {'queryset': Kitchen.objects.all(), 'serializer_class': KitchenSerializer},
     ]
+
+
+class IngredientListView(generics.ListAPIView):
+    """
+    Просмотр ингредиентов.
+    Доступы: просмотр доступен всем.
+    """
+    serializer_class = IngredientsListSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = Ingredient.objects.all()
